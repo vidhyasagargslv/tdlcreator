@@ -1,5 +1,18 @@
 <!doctype html><html><head><meta charset="utf-8"><title>TDL Maker</title>
-<style>body{font-family:system-ui;margin:0;display:flex;height:100vh}#f{width:380px;padding:16px;overflow:auto;background:#f6f7f9}#p{flex:1;display:flex;flex-direction:column}pre{flex:1;margin:0;padding:12px;overflow:auto;background:#1e1e1e;color:#ddd;font-size:12px}label{display:block;margin:6px 0}input[type=text]{width:100%;box-sizing:border-box}fieldset{margin:8px 0}#v{padding:6px 12px;font-size:13px}button{padding:8px 14px}</style></head><body>
+<style>
+*{box-sizing:border-box}html,body{height:100%}
+body{font-family:system-ui,sans-serif;margin:0;display:grid;grid-template-columns:minmax(400px,440px) minmax(0,1fr);height:100vh;overflow:hidden}
+#f{padding:16px 20px;overflow:auto;background:#f6f7f9;border-right:1px solid #ddd;min-width:0}
+#p{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+pre{flex:1;min-height:0;margin:0;padding:12px;overflow:auto;white-space:pre;background:#1e1e1e;color:#ddd;font-size:12px}
+label{display:block;margin:8px 0;font-size:14px}
+input[type=text],select{display:block;width:100%;margin-top:4px;padding:6px}
+input[type=checkbox]{margin-right:6px}
+label:has(input[type=checkbox]){display:flex;align-items:center}
+fieldset{margin:10px 0;border:1px solid #ccc}
+#v{padding:6px 12px;font-size:13px;background:#eef}button{padding:8px 14px;margin-top:8px}
+@media (max-width:900px){body{display:block;height:auto;overflow:auto}#f{border-right:0}#p{height:80vh}}
+</style></head><body>
 <div id="f"><h2>TDL Maker</h2>
 <label>Menu name <input type=text id=menuName value="Sync"></label>
 <label>Menu hotkey <input type=text id=menuKey value="Y" maxlength=1></label>
