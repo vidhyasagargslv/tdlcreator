@@ -13,139 +13,266 @@ fieldset{margin:10px 0;border:1px solid #ccc}
 #v{padding:6px 12px;font-size:13px;background:#eef}button{padding:8px 14px;margin-top:8px}
 #sp{cursor:col-resize;background:#ccc;touch-action:none}#sp:hover,#sp.on{background:#4a90e2}
 @media (max-width:900px){#sp{display:none}body{display:block;height:auto;overflow:auto}#f{border-right:0}#p{height:80vh}}
+.b{display:inline-block;font-size:10px;padding:0 5px;border-radius:8px;color:#fff;vertical-align:middle}.b.V{background:#2e7d32}.b.E{background:#e65100}.grid{display:grid;grid-template-columns:1fr 1fr}.grid label{margin:3px 0}.leg{font-size:12px}fieldset p{margin:6px 0;font-size:14px}
 </style></head><body>
-<div id="f"><h2>TDL Maker</h2>
+<div id="f"><h2>TDL Maker <small style="font-size:12px;color:#666">v0.2</small></h2>
+<p class=leg><span class="b V">V</span> syntax from TallyHelp docs &nbsp;<span class="b E">E</span> experimental</p>
+<fieldset><legend>Menu &amp; screens</legend>
 <label>Menu name <input type=text id=menuName value="Sync"></label>
 <label>Menu hotkey <input type=text id=menuKey value="Y" maxlength=1></label>
-<fieldset><legend>Features</legend>
-<label><input type=checkbox id=config checked> Configuration screen (persistent)</label>
-<label><input type=checkbox id=dates checked> Date range selectors</label>
-<label>From default <select id=fromDefault><option value=month>Current month start</option><option value=fy>Year start</option></select></label>
-<label><input type=checkbox id=pull> Pull from URL (experimental)</label></fieldset>
-<fieldset><legend>Push</legend><div id=ents></div>
-<label>Format <select id=format><option>XML</option><option>JSON</option></select></label></fieldset>
-<label>API URL (placeholders {company} {companyname} {fromdate} {todate})<input type=text id=url value="https://api.example.com/tally/{company}?from={fromdate}&to={todate}"></label>
+<label><input type=checkbox id=config checked> Configuration screen (persistent) <span class="b V">V</span></label>
+<label><input type=checkbox id=dates checked> Date range selectors <span class="b V">V</span></label>
+<label>From default <select id=fromDefault><option value=month>Current month start</option><option value=fy>Books period start (SVFromDate)</option></select></label>
+<label><input type=checkbox id=log checked> Sync log report + retry <span class="b E">E</span></label></fieldset>
+<fieldset><legend>Vouchers to push <span class="b V">V</span></legend><div id=vch class=grid></div></fieldset>
+<fieldset><legend>Masters &amp; inventory <span class="b V">V</span></legend><div id=mst class=grid></div>
+<label><input type=checkbox id=stock> Stock summary / closing balances <span class="b E">E</span></label></fieldset>
+<fieldset><legend>Data</legend>
+<label>Format <select id=format><option>XML</option><option value=JSON>JSON (E)</option></select></label>
+<label>Field depth <select id=depth><option value=header>Header only</option><option value=full>Full: ledger, inventory, bill allocations, GST (E)</option></select></label>
+<label>Sync mode <select id=incremental><option value=none>Full date range</option><option value=alterid>Incremental: changed since last AlterID (E)</option></select></label>
+<label>Chunking <select id=chunk><option value=none>One request</option><option value=month>One request per month (E)</option><option value=day>One request per day (E)</option></select></label>
+<label><input type=checkbox id=udf> Sync-status UDF on vouchers/masters, skip synced <span class="b E">E</span></label></fieldset>
+<fieldset><legend>Automation</legend>
+<p>Auto-push on voucher save <span class="b E">E</span></p><div id=autoV class=grid></div>
+<label><input type=checkbox id=autoMst> Auto-push ledger / stock item on save <span class="b E">E</span></label>
+<label><input type=checkbox id=timer> Scheduled sync (System Timer) <span class="b V">V</span></label>
+<label>Interval (minutes) <input type=text id=timerMin value="15"></label></fieldset>
+<fieldset><legend>Security</legend>
+<label>Auth <select id=auth><option value=header>x-api-key HTTP header (V)</option><option value=body>API key in request body (V)</option><option value=query>?apikey= query param (V)</option><option value=basic>Basic auth header (V)</option></select></label>
+<label>Basic auth value (base64 of user:pass) <input type=text id=basic value=""></label>
+<label>Company gate <select id=gate><option value=none>Off</option><option value=name>Company name must match (V)</option><option value=gstin>Name + GSTIN must match (E)</option></select></label>
+<label>Allowed company name <input type=text id=gateCompany value=""></label>
+<label>Allowed GSTIN <input type=text id=gateGstin value=""></label></fieldset>
+<fieldset><legend>Pull <span class="b E">E</span></legend>
+<label><input type=checkbox id=pull> Pull ledgers &amp; stock items from URL into Tally</label></fieldset>
+<fieldset><legend>Endpoint</legend>
+<label>API URL (placeholders {company} {companyname} {fromdate} {todate})<input type=text id=url value="https://api.example.com/tally/{company}"></label>
 <label>API key <input type=text id=apiKey value="YOUR_API_KEY"></label>
-<label>Company code <input type=text id=company value="ACME"></label>
+<label>Company code <input type=text id=company value="ACME"></label></fieldset>
 <label>File name <input type=text id=fname value="tallysync.tdl"></label>
 <button id=dl>Download .tdl</button>
-<h4>Load in Tally</h4><ol><li>Save the .tdl on the Tally PC.</li><li>F1 &gt; TDL &amp; Add-On &gt; Manage Local TDLs.</li><li>Load TDL on startup: Yes; add the full file path.</li><li>Check status says Loaded; open Gateway &gt; your menu.</li></ol></div>
+<h4>Load in Tally</h4><ol><li>Save the .tdl on the Tally PC.</li><li>F1 &gt; TDL &amp; Add-On &gt; Manage Local TDLs.</li><li>Load TDL on startup: Yes; add the full file path.</li><li>Check status says Loaded; open Gateway &gt; your menu.</li><li>Backend must answer &lt;ENVELOPE&gt;&lt;STATUS&gt;1&lt;/STATUS&gt;&lt;/ENVELOPE&gt; for success.</li></ol></div>
 <div id="sp" title="Drag to resize, double-click to reset"></div><div id="p"><div id=v></div><pre id=out></pre></div>
-<script>// TDL generator (shared by index.html and examples build)
+<script>// TDL Maker generator v0.2 (source of truth; build.js inlines it into index.html)
+const TS_VCH={Sales:'Sales',Purchases:'Purchase',SalesOrders:'Sales Order',PurchaseOrders:'Purchase Order',Receipts:'Receipt',Payments:'Payment',CreditNotes:'Credit Note',DebitNotes:'Debit Note',Journals:'Journal',Contras:'Contra',StockJournals:'Stock Journal',DeliveryNotes:'Delivery Note',ReceiptNotes:'Receipt Note'};
+const TS_MST={Ledgers:'Ledger',StockItems:'Stock Item',Groups:'Group',Units:'Unit',Godowns:'Godown',StockGroups:'Stock Group',CostCentres:'Cost Centre'};
+// confidence: V = syntax taken from TallyHelp docs; E = experimental / not confirmed
+const TS_CONF={menu:'V',config:'V',dates:'V',push:'V',json:'E',depthFull:'E',incremental:'E',udf:'E',autoVch:'E',autoMst:'E',timer:'V',pull:'E',gateName:'V',gateGstin:'E',authBody:'V',authQuery:'V',authHeader:'V',authBasic:'V',log:'E',chunk:'E',stock:'E'};
 function genTDL(o){
- const E=o.entities||[], L=[], P=s=>L.push(s);
- const q=s=>String(s||'').replace(/"/g,"'");
- const V={Sales:'Sales',Purchases:'Purchase',SalesOrders:'Sales Order',PurchaseOrders:'Purchase Order',Receipts:'Receipt',Payments:'Payment'};
- P(';; ===== Generated by TDL Maker on '+new Date().toISOString().slice(0,10)+' =====');
- P(';; Menu: '+o.menuName+' | Config: '+(o.config?'Yes':'No')+' | Dates: '+(o.dates?'Yes':'No'));
- P(';; Push: '+(E.join(', ')||'none')+' | Format: '+o.format+' | Pull (experimental): '+(o.pull?'Yes':'No'));
- P(';; URL template: '+o.url);
- P(';; Load via F1 > TDL & Add-On > Manage Local TDLs.  UNTESTED on real TallyPrime - verify first.');
- P('');
- P('[#Menu: Gateway of Tally]');
- P('    Add: Key Item: At End: '+o.menuName+': '+o.menuKey+': Menu: TS Sync Menu');
- P('');
- P('[Menu: TS Sync Menu]');
- P('    Title: "'+q(o.menuName)+'"');
- if(o.config) P('    Key Item: Configuration: C: Display: TS Config');
- if(o.dates)  P('    Key Item: Set Date Range: D: Display: TS Dates');
- E.forEach((e,i)=>P('    Key Item: Push '+e+': '+(i+1)+': Call: TS Push '+e));
- if(o.pull) P('    Key Item: Pull from URL (Experimental): P: Display: TS Pull Report');
- P('    Item: Blank');
- P('    Key Item: @@locQuit: Q: Menu Quit');
- P('');
- // variables
- const vars=[['TSApiURL',o.url],['TSApiKey',o.apiKey],['TSCompanyCode',o.company]];
- vars.forEach(([n])=>{P('[Variable: '+n+']');P('    Type: String');P('    Persistent: Yes');P('');});
- if(o.dates){['TSFromDate','TSToDate'].forEach(n=>{P('[Variable: '+n+']');P('    Type: Date');P('    Persistent: Yes');P('');});}
- P('[System: Variable]');
- vars.forEach(([n,v])=>P('    '+n+': "'+q(v)+'"'));
- if(o.dates){P('    TSFromDate: '+(o.fromDefault==='fy'?'$YearStart:##SVCurrentDate':'$MonthStart:##SVCurrentDate'));P('    TSToDate: $MonthEnd:##SVCurrentDate');}
- P('');
- // URL formula with placeholders
- let f='"'+q(o.url)+'"';
- const rep=(tok,expr)=>{f=f.split(tok).join('" + '+expr+' + "');};
- rep('{company}','##TSCompanyCode'); rep('{companyname}','##SVCurrentCompany');
- rep('{fromdate}',o.dates?'$String:##TSFromDate:UniversalDate':'$String:##SVFromDate:UniversalDate');
- rep('{todate}',o.dates?'$String:##TSToDate:UniversalDate':'$String:##SVToDate:UniversalDate');
- P('[System: Formula]');
- P('    TSBaseURL: '+f.replace(/ \+ ""/g,'').replace(/"" \+ /g,''));
- P('');
- // config / date screens
- const screen=(name,title,fields)=>{
-  P('[Report: '+name+']');P('    Form: '+name);P('    Title: "'+title+'"');
-  fields.forEach(x=>P('    Variable: '+x[0]));P('');
-  P('[Form: '+name+']');P('    Part: '+name);P('    Width: 70% Screen');P('');
-  P('[Part: '+name+']');P('    Lines: '+fields.map(x=>name+' '+x[0]).join(', '));P('');
-  fields.forEach(([v,lab,t])=>{
-   P('[Line: '+name+' '+v+']');P('    Fields: Medium Prompt, '+name+' '+v+' Fld');P('    Local: Field: Medium Prompt: Info: "'+lab+'"');P('');
-   P('[Field: '+name+' '+v+' Fld]');P('    Use: '+(t==='d'?'Uni Date Field':'Name Field'));
-   if(t!=='d')P('    Max: 250');P('    Set As: ##'+v);P('    Modifies: '+v+': Yes');P('');
-  });
- };
- if(o.config) screen('TS Config','Sync Configuration',[['TSApiURL','API URL'],['TSApiKey','API Key'],['TSCompanyCode','Company Code']]);
- if(o.dates)  screen('TS Dates','Sync Date Range',[['TSFromDate','From Date','d'],['TSToDate','To Date','d']]);
- const fromE=o.dates?'##TSFromDate':'##SVFromDate', toE=o.dates?'##TSToDate':'##SVToDate';
+ const L=[],P=(...a)=>a.forEach(s=>L.push(s)),q=s=>String(s==null?'':s).replace(/"/g,"'");
+ const VE=(o.vouchers||[]).filter(e=>TS_VCH[e]),ME=(o.masters||[]).filter(e=>TS_MST[e]);
+ const ALL=[...VE,...ME];const any=ALL.length||o.stock;
  const enc=o.format==='JSON'?'UTF8':'ASCII';
- E.forEach(e=>{
-  const isV=!!V[e], col='TS Col '+e, rep='TS Req '+e;
-  P('[Function: TS Push '+e+']');
-  P('    00: HTTP Post: @@TSBaseURL + "/'+e.toLowerCase()+'": '+enc+': '+rep+': TS Resp Err: TS Resp Ok');
+ const fullD=o.depth==='full',inc=o.incremental==='alterid',udf=!!o.udf;
+ P(';; ===== Generated by TDL Maker v0.2 on '+new Date().toISOString().slice(0,10)+' =====');
+ P(';; Vouchers: '+(VE.join(', ')||'none'),';; Masters: '+(ME.join(', ')||'none')+' | Stock summary: '+(o.stock?'Yes':'No'));
+ P(';; Format: '+o.format+' | Depth: '+o.depth+' | Incremental: '+o.incremental+' | Chunk: '+o.chunk+' | Auth: '+o.auth);
+ P(';; Auto on voucher save: '+((o.autoVch||[]).join(', ')||'none')+' | Auto on master save: '+(o.autoMst?'Yes':'No')+' | Timer: '+(o.timer?o.timerMin+' min':'off'));
+ P(';; Gate: '+o.gate+' | Sync-status UDF: '+(udf?'Yes':'No')+' | Log: '+(o.log?'Yes':'No')+' | Pull (experimental): '+(o.pull?'Yes':'No'));
+ P(';; URL template: '+o.url,';; Backend must reply <ENVELOPE><STATUS>1</STATUS></ENVELOPE> for HTTP Post to count as success.');
+ P(';; Load via F1 > TDL & Add-On > Manage Local TDLs. UNTESTED on real TallyPrime - lines marked [EXPERIMENTAL] are least certain.','');
+ const fromE=o.dates?'##TSFromDate':'##SVFromDate',toE=o.dates?'##TSToDate':'##SVToDate';
+ // ---------- menu
+ P('[#Menu: Gateway of Tally]','    Add: Key Item: At End: '+o.menuName+': '+o.menuKey+': Menu: TS Sync Menu','');
+ P('[Menu: TS Sync Menu]','    Title: "'+q(o.menuName)+'"');
+ if(o.config)P('    Key Item: Configuration: C: Display: TS Config');
+ if(o.dates)P('    Key Item: Set Date Range: D: Display: TS Dates');
+ const keys='123456789ABEFGHIJKMNORTUVWXZ';
+ ALL.forEach((e,i)=>P('    Key Item: Push '+(TS_VCH[e]||TS_MST[e])+(VE.includes(e)?' Vouchers':'s')+': '+keys[i]+': Call: TS Push '+e));
+ if(o.stock)P('    Key Item: Push Stock Summary: S: Call: TS Push StockSummary');
+ if(ALL.length)P('    Key Item: Push All: L: Call: TS Push All');
+ if(o.log)P('    Key Item: Sync Log: Y: Display: TS Log');
+ if(o.pull)P('    Key Item: Pull from URL (Experimental): P: Menu: TS Pull Menu');
+ P('    Item: Blank','    Key Item: @@locQuit: Q: Menu Quit','');
+ // ---------- variables
+ const vars=[['TSApiURL','String',JSON.stringify(q(o.url))],['TSApiKey','String','"'+q(o.apiKey)+'"'],['TSCompanyCode','String','"'+q(o.company)+'"']];
+ if(o.gate!=='none')vars.push(['TSGateCompany','String','"'+q(o.gateCompany)+'"'],['TSGateGSTIN','String','"'+q(o.gateGstin)+'"']);
+ if(o.auth==='basic')vars.push(['TSBasicAuth','String','"'+q(o.basic)+'"']);
+ if(o.dates)vars.push(['TSFromDate','Date',o.fromDefault==='fy'?'##SVFromDate':'$$MonthStart:##SVCurrentDate'],['TSToDate','Date','$$MonthEnd:##SVCurrentDate']);
+ if(inc)[...ALL].forEach(e=>vars.push(['TSAlt'+e,'Number','0']));
+ if(o.log)[...ALL,...(o.stock?['StockSummary']:[])].forEach(e=>vars.push(['TSLog'+e,'String','"never"']));
+ vars.forEach(([n,t])=>P('[Variable: '+n+']','    Type: '+t,'    Persistent: Yes',''));
+ [['TSChunkFrom','Date'],['TSChunkTo','Date'],['TSOneMID','Number'],['TSQuiet','Logical']].forEach(([n,t])=>P('[Variable: '+n+']','    Type: '+t,'    Persistent: No',''));
+ P('[System: Variable]');vars.forEach(([n,,v])=>P('    '+n+': '+v));
+ P('    TSChunkFrom: '+fromE.replace('##TSFromDate','##SVFromDate'),'    TSChunkTo: ##SVToDate','    TSOneMID: 0','    TSQuiet: No','');
+ // ---------- URL formula
+ let f='"'+q(o.url)+'"';const rep=(t,x)=>{f=f.split(t).join('" + '+x+' + "')};
+ rep('{company}','##TSCompanyCode');rep('{companyname}','##SVCurrentCompany');
+ rep('{fromdate}','$$String:##TSChunkFrom:UniversalDate');rep('{todate}','$$String:##TSChunkTo:UniversalDate');
+ f=f.replace(/ \+ ""/g,'').replace(/"" \+ /g,'');
+ P('[System: Formula]','    TSBaseURL: '+f);
+ const sep=o.url.includes('?')?'&':'?';
+ P('    TSAuthQS: '+(o.auth==='query'?'"'+sep+'apikey=" + ##TSApiKey':'""'));
+ if(o.gate==='name')P('    TSGateOK: $$IsEqual:##SVCurrentCompany:##TSGateCompany');
+ else if(o.gate==='gstin')P('    TSGateOK: $$IsEqual:##SVCurrentCompany:##TSGateCompany AND $$IsEqual:($GSTRegistrationNumber:Company:##SVCurrentCompany):##TSGateGSTIN  ;; [EXPERIMENTAL] GSTIN method name');
+ else P('    TSGateOK: Yes');
+ P('');
+ // ---------- screens
+ const screen=(name,title,fields)=>{
+  P('[Report: '+name+']','    Form: '+name,'    Title: "'+title+'"');fields.forEach(x=>P('    Variable: '+x[0]));P('');
+  P('[Form: '+name+']','    Part: '+name,'    Width: 70% Screen','');
+  P('[Part: '+name+']','    Lines: '+fields.map(x=>name+' '+x[0]).join(', '),'');
+  fields.forEach(([v,lab,t])=>{P('[Line: '+name+' '+v+']','    Fields: Medium Prompt, '+name+' '+v+' Fld','    Local: Field: Medium Prompt: Info: "'+lab+'"','');
+   P('[Field: '+name+' '+v+' Fld]','    Use: '+(t==='d'?'Uni Date Field':'Name Field'));if(t!=='d')P('    Max: 250');P('    Set As: ##'+v,'    Modifies: '+v+': Yes','');});};
+ if(o.config){const fl=[['TSApiURL','API URL'],['TSApiKey','API Key'],['TSCompanyCode','Company Code']];
+  if(o.gate!=='none')fl.push(['TSGateCompany','Allowed Company Name'],['TSGateGSTIN','Allowed GSTIN']);
+  if(o.auth==='basic')fl.push(['TSBasicAuth','Basic auth (base64 user:pass)']);
+  screen('TS Config','Sync Configuration',fl);}
+ if(o.dates)screen('TS Dates','Sync Date Range',[['TSFromDate','From Date','d'],['TSToDate','To Date','d']]);
+ // ---------- UDF
+ if(udf)P(';; [EXPERIMENTAL] sync-status UDFs (index numbers 21001-21002; change if they clash with other TDLs)','[System: UDF]','    TSSynced: Logical: 21001','    TSSyncedOn: Date: 21002','');
+ // ---------- fields library
+ const FL=[['TS Hdr Company','COMPANY','##TSCompanyCode'],['TS Hdr Cmp Name','COMPANYNAME','##SVCurrentCompany'],['TS Hdr From','FROMDATE','$$String:##TSChunkFrom:UniversalDate'],['TS Hdr To','TODATE','$$String:##TSChunkTo:UniversalDate'],
+  ['TS F Date','DATE','$$String:$Date:UniversalDate'],['TS F VchNo','VOUCHERNUMBER','$VoucherNumber'],['TS F VchType','VOUCHERTYPE','$VoucherTypeName'],['TS F Party','PARTYNAME','$PartyLedgerName'],['TS F Amount','AMOUNT','$$String:$Amount'],['TS F Narr','NARRATION','$Narration'],
+  ['TS F GUID','GUID','$GUID'],['TS F MasterID','MASTERID','$$String:$MasterID'],['TS F AlterID','ALTERID','$$String:$AlterID'],['TS F Name','NAME','$Name'],['TS F Parent','PARENT','$Parent'],
+  ['TS LE Ledger','LEDGERNAME','$LedgerName'],['TS LE Amount','AMOUNT','$$String:$Amount'],['TS LE GSTRate','GSTRATE','$$String:$GSTRate  ;; [EXPERIMENTAL] method name'],
+  ['TS IE Item','STOCKITEMNAME','$StockItemName'],['TS IE Qty','ACTUALQTY','$$String:$ActualQty'],['TS IE Rate','RATE','$$String:$Rate'],['TS IE Amount','AMOUNT','$$String:$Amount'],
+  ['TS BA Name','BILLNAME','$Name'],['TS BA Type','BILLTYPE','$BillType'],['TS BA Amount','AMOUNT','$$String:$Amount'],
+  ['TS SS Name','NAME','$Name'],['TS SS Qty','CLOSINGQTY','$$String:$ClosingBalance'],['TS SS Value','CLOSINGVALUE','$$String:$ClosingValue']];
+ if(udf)FL.push(['TS F Synced','SYNCED','$$String:$TSSynced']);
+ if(o.auth==='body')FL.push(['TS Hdr Key','APIKEY','##TSApiKey']);
+ const hdrF=['TS Hdr Company','TS Hdr Cmp Name','TS Hdr From','TS Hdr To'].concat(o.auth==='body'?['TS Hdr Key']:[]);
+ // ---------- request report builder
+ const reqReport=(rep,col,isV,kind)=>{
+  P('[Report: '+rep+']','    Form: '+rep,'    Export: Yes');
+  if(o.format==='JSON')P('    JSONTag: "ENVELOPE"  ;; [EXPERIMENTAL] JSON export attribute','    Export Header: "Content-Type: application/json"');
+  else P('    Export Header: "Content-Type: application/xml"');
+  if(o.auth==='header')P('    Export Header: "x-api-key: " + ##TSApiKey');
+  if(o.auth==='basic')P('    Export Header: "Authorization: Basic " + ##TSBasicAuth');
   P('');
-  P('[Collection: '+col+']');
-  if(isV){P('    Type: Voucher');P('    Fetch: *.*');P('    Filter: TS Flt '+e+', TS Flt Date');}
-  else {P('    Type: '+(e==='Ledgers'?'Ledger':'Stock Item'));P('    Fetch: *.*');}
+  P('[Form: '+rep+']','    Part: '+rep,'    XMLTag: "ENVELOPE"','');
+  P('[Part: '+rep+']','    Line: '+rep+' Hdr, '+rep+' Row','    Repeat: '+rep+' Row: '+col,'    Scroll: Vertical','');
+  P('[Line: '+rep+' Hdr]','    Fields: '+hdrF.join(', '),'');
+  P('[Line: '+rep+' Row]','    XMLTag: "'+(kind==='stock'?'STOCKITEM':isV?'VOUCHER':'MASTER')+'"');
+  if(kind==='stock')P('    Fields: TS SS Name, TS SS Qty, TS SS Value','');
+  else if(isV){P('    Fields: TS F Date, TS F VchNo, TS F VchType, TS F Party, TS F Amount, TS F Narr, TS F GUID, TS F MasterID, TS F AlterID'+(udf?', TS F Synced':''));
+   if(fullD)P('    Explode: TS LE Part: Yes','    Explode: TS IE Part: Yes');P('');}
+  else P('    Fields: TS F Name, TS F Parent, TS F GUID, TS F MasterID, TS F AlterID'+(udf?', TS F Synced':''),'');
+ };
+ // ---------- collections + functions per entity
+ const post=(urlSuffix,rep,quiet)=>quiet?'HTTP Post: @@TSBaseURL + "/'+urlSuffix+'" + @@TSAuthQS: '+enc+': '+rep:'HTTP Post: @@TSBaseURL + "/'+urlSuffix+'" + @@TSAuthQS: '+enc+': '+rep+': TS Resp Err: TS Resp Ok';
+ const stamp='$$String:$$MachineDate + " " + $$String:$$MachineTime';
+ const fn=(e,col,rep,isV)=>{
+  const id=e,suf=e.toLowerCase();let n=0;const S=s=>P('    '+String(n++).padStart(2,'0')+': '+s);
+  P('[Function: TS Push '+id+']');
+  S('If: NOT @@TSGateOK');S('Msg Box: "Sync blocked": "Open company does not match the configured company"');S('Return');S('End If');
+  if(isV&&o.chunk!=='none'){
+   S('Set: TSChunkFrom: '+fromE);S('While: ##TSChunkFrom <= '+toE);
+   S('Set: TSChunkTo: if '+(o.chunk==='month'?'$$MonthEnd:##TSChunkFrom':'##TSChunkFrom')+' > '+toE+' then '+toE+' else '+(o.chunk==='month'?'$$MonthEnd:##TSChunkFrom':'##TSChunkFrom'));
+   S('If: ##TSQuiet');S(post(suf,rep,1));S('Else');S(post(suf,rep,0));S('End If');
+   S('Set: TSChunkFrom: ##TSChunkTo + 1');S('End While');
+  } else {S('Set: TSChunkFrom: '+fromE);S('Set: TSChunkTo: '+toE);S('If: ##TSQuiet');S(post(suf,rep,1));S('Else');S(post(suf,rep,0));S('End If');}
+  if(inc||udf){S('Set: TSChunkFrom: '+fromE);S('Set: TSChunkTo: '+toE);S('Walk Collection: '+col);
+   if(inc)S('Set: TSAlt'+id+': if $AlterID > ##TSAlt'+id+' then $AlterID else ##TSAlt'+id);
+   if(udf){S('Set Target');S('Set Value: TSSynced: Yes');S('Set Value: TSSyncedOn: $$MachineDate');S('Save Target');}
+   S('End Walk');}
+  if(o.log)S('Set: TSLog'+id+': '+stamp+' + " | " + $$String:($$NumItems:'+col+') + " records sent"');
   P('');
-  if(isV){P('[System: Formula]');P('    TS Flt '+e+': $IsSysNameEqual:'+V[e].replace(/ /g,'')+':$VoucherTypeName OR $IsVchTypeOf:$VoucherTypeName:"'+V[e]+'"');P('');}
-  P('[Report: '+rep+']');P('    Form: '+rep);P('    Export: Yes');
-  if(o.format==='JSON')P('    JSONTag: "'+e.toLowerCase()+'"');
-  P('    Variable: SVExportFormat');P('    Set: SVExportFormat: $SysName:'+(o.format==='JSON'?'JSONEx':'XML'));P('');
-  P('[Form: '+rep+']');P('    Part: '+rep);P('    XMLTag: "ENVELOPE"');P('');
-  P('[Part: '+rep+']');P('    Line: '+rep+' Hdr, '+rep+' Row');P('    Repeat: '+rep+' Row: '+col);P('    Scroll: Vertical');P('');
-  P('[Line: '+rep+' Hdr]');P('    Fields: TS Hdr Company, TS Hdr Key, TS Hdr From, TS Hdr To');P('');
-  P('[Line: '+rep+' Row]');P('    XMLTag: "'+(isV?'VOUCHER':'MASTER')+'"');
-  P('    Fields: '+(isV?'TS F Date, TS F VchNo, TS F VchType, TS F Party, TS F Amount, TS F GUID':'TS F Name, TS F Parent, TS F GUID'));P('');
+ };
+ const flt=[];
+ ALL.forEach(e=>{
+  const isV=VE.includes(e),col='TS Col '+e,rep='TS Req '+e;
+  P('[Collection: '+col+']','    Type: '+(isV?'Voucher':TS_MST[e]),'    Fetch: *.*');
+  const fs=[];if(isV)fs.push('TS Flt '+e,'TS Flt Date');if(inc)fs.push('TS Flt Alt '+e);if(udf)fs.push('TS Flt Unsynced');
+  if(fs.length)P('    Filter: '+fs.join(', '));P('');
+  if(isV)flt.push('    TS Flt '+e+': $$IsVchTypeOf:$VoucherTypeName:"'+TS_VCH[e]+'"  ;; [EXPERIMENTAL] use $VoucherTypeName = "'+TS_VCH[e]+'" if this errors');
+  if(inc)flt.push('    TS Flt Alt '+e+': $AlterID > ##TSAlt'+e);
+  reqReport(rep,col,isV);fn(e,col,rep,isV);
  });
- if(E.length){
-  const fl=[['TS Hdr Company','COMPANY','##TSCompanyCode'],['TS Hdr Key','APIKEY','##TSApiKey'],['TS Hdr From','FROMDATE','$String:'+fromE+':UniversalDate'],['TS Hdr To','TODATE','$String:'+toE+':UniversalDate'],
-   ['TS F Date','DATE','$String:$Date:UniversalDate'],['TS F VchNo','VOUCHERNUMBER','$VoucherNumber'],['TS F VchType','VOUCHERTYPE','$VoucherTypeName'],['TS F Party','PARTYNAME','$PartyLedgerName'],['TS F Amount','AMOUNT','$String:$Amount'],['TS F GUID','GUID','$GUID'],['TS F Name','NAME','$Name'],['TS F Parent','PARENT','$Parent']];
-  fl.forEach(([n,t,s])=>{P('[Field: '+n+']');P('    Use: Name Field');P('    Set As: '+s);P('    XMLTag: "'+t+'"');P('');});
-  P('[System: Formula]');P('    TS Flt Date: $Date >= '+fromE+' AND $Date <= '+toE);P('');
-  P('[Report: TS Resp Ok]');P('    Form: TS Resp');P('    Title: "Sync Successful"');P('');
-  P('[Report: TS Resp Err]');P('    Form: TS Resp');P('    Title: "Sync Failed"');P('');
-  P('[Form: TS Resp]');P('    Part: TS Resp');P('');P('[Part: TS Resp]');P('    Line: TS Resp');P('');
-  P('[Line: TS Resp]');P('    Field: TS Resp');P('');P('[Field: TS Resp]');P('    Use: Name Field');P('    Set As: $String:$RESPONSE');P('    Full Width: Yes');P('');
+ if(o.stock){P('[Collection: TS Col StockSummary]','    Type: Stock Item','    Fetch: Name, ClosingBalance, ClosingValue  ;; [EXPERIMENTAL] closing as of current period','');
+  reqReport('TS Req StockSummary','TS Col StockSummary',false,'stock');
+  P('[Function: TS Push StockSummary]','    00: If: NOT @@TSGateOK','    01: Msg Box: "Sync blocked": "Open company does not match the configured company"','    02: Return','    03: End If',
+   '    04: Set: TSChunkFrom: '+fromE,'    05: Set: TSChunkTo: '+toE,'    06: '+post('stocksummary','TS Req StockSummary',0));
+  if(o.log)P('    07: Set: TSLogStockSummary: '+stamp+' + " | sent"');P('');}
+ if(any){
+  P('[System: Formula]',...flt,'    TS Flt Date: $Date >= ##TSChunkFrom AND $Date <= ##TSChunkTo');if(udf)P('    TS Flt Unsynced: NOT $TSSynced');
+  P('    TSAutoVch: '+((o.autoVch||[]).length?(o.autoVch.map(e=>'$VoucherTypeName = "'+TS_VCH[e]+'"').join(' OR ')):'No'),'');
+  if(fullD){P(';; [EXPERIMENTAL] full depth: ledger, inventory and bill-allocation sub-collections',
+   '[Part: TS LE Part]','    Line: TS LE Line','    Repeat: TS LE Line: AllLedgerEntries','    Scroll: Vertical','',
+   '[Line: TS LE Line]','    XMLTag: "LEDGERENTRY"','    Fields: TS LE Ledger, TS LE Amount, TS LE GSTRate','    Explode: TS BA Part: Yes','',
+   '[Part: TS BA Part]','    Line: TS BA Line','    Repeat: TS BA Line: BillAllocations','    Scroll: Vertical','',
+   '[Line: TS BA Line]','    XMLTag: "BILLALLOCATION"','    Fields: TS BA Name, TS BA Type, TS BA Amount','',
+   '[Part: TS IE Part]','    Line: TS IE Line','    Repeat: TS IE Line: AllInventoryEntries','    Scroll: Vertical','',
+   '[Line: TS IE Line]','    XMLTag: "INVENTORYENTRY"','    Fields: TS IE Item, TS IE Qty, TS IE Rate, TS IE Amount','');}
+  FL.forEach(([n,t,s])=>P('[Field: '+n+']','    Use: Name Field','    Set As: '+s,'    XMLTag: "'+t+'"',''));
+  P('[Report: TS Resp Ok]','    Form: TS Resp','    Title: "Sync Successful"','','[Report: TS Resp Err]','    Form: TS Resp','    Title: "Sync Failed"','',
+   '[Form: TS Resp]','    Part: TS Resp','','[Part: TS Resp]','    Line: TS Resp','    Repeat: TS Resp: Parameter Collection','    Scroll: Vertical','',
+   '[Line: TS Resp]','    Field: TS Resp','','[Field: TS Resp]','    Use: Name Field','    Set As: $$String:$Name + " " + $$String:$Value  ;; [EXPERIMENTAL] Parameter Collection fields','    Full Width: Yes','');
+  if(ALL.length){P('[Function: TS Push All]');let k=0;ALL.forEach(e=>P('    '+String(k++).padStart(2,'0')+': Call: TS Push '+e));P('');}
+  P('[Function: TS Push All Quiet]','    00: Set: TSQuiet: Yes','    01: Call: TS Push All','    02: Set: TSQuiet: No','');
  }
+ // ---------- auto-sync on save
+ if((o.autoVch||[]).length&&any){
+  P(';; [EXPERIMENTAL] auto-push the saved voucher. Form Accept runs first so the voucher is saved, then the push.',
+   '[#Form: Voucher]','    Add: On: Form Accept: Yes: Form Accept','    Add: On: Form Accept: @@TSAutoVch AND @@TSGateOK: Call: TS Push One Vch','');
+  P('[Function: TS Push One Vch]','    00: Set: TSOneMID: $MasterID','    01: Set: TSChunkFrom: $Date','    02: Set: TSChunkTo: $Date','    03: '+post('voucher','TS Req OneVch',1),'');
+  P('[Collection: TS Col OneVch]','    Type: Voucher','    Fetch: *.*','    Filter: TS Flt OneVch','','[System: Formula]','    TS Flt OneVch: $MasterID = ##TSOneMID','');
+  reqReport('TS Req OneVch','TS Col OneVch',true);
+ }
+ if(o.autoMst&&any){
+  P(';; [EXPERIMENTAL] auto-push masters on save (form names Ledger / Stock Item assumed)');
+  [['Ledger','Ledger'],['Stock Item','StockItem']].forEach(([fm,id])=>{
+   P('[#Form: '+fm+']','    Add: On: Form Accept: Yes: Form Accept','    Add: On: Form Accept: @@TSGateOK: Call: TS Push One '+id,'');
+   P('[Function: TS Push One '+id+']','    00: Set: TSOneMID: $MasterID','    01: '+post(id.toLowerCase(),'TS Req One'+id,1),'');
+   P('[Collection: TS Col One'+id+']','    Type: '+fm,'    Fetch: *.*','    Filter: TS Flt OneVch','');
+   reqReport('TS Req One'+id,'TS Col One'+id,false);});
+  if(!(o.autoVch||[]).length)P('[System: Formula]','    TS Flt OneVch: $MasterID = ##TSOneMID','');
+ }
+ // ---------- timer
+ if(o.timer&&ALL.length){const sec=Math.max(1,+o.timerMin||15)*60;
+  P(';; Scheduled sync (System Timer event, syntax per TallyHelp)','[System: Event]','    TS Sync Timer: TIMER: @@TSGateOK: Call: TS Push All Quiet','    TS Sync Start: System Start: Yes: Start Timer: TS Sync Timer: '+sec,'');}
+ // ---------- log
+ if(o.log){const ents=[...ALL,...(o.stock?['StockSummary']:[])];
+  P('[Report: TS Log]','    Form: TS Log','    Title: "Sync Log"','','[Form: TS Log]','    Part: TS Log','    Width: 80% Screen','',
+   '[Part: TS Log]','    Lines: '+ents.map(e=>'TS Log '+e).join(', '),'');
+  ents.forEach(e=>{P('[Line: TS Log '+e+']','    Fields: Medium Prompt, TS Log '+e+' Fld','    Local: Field: Medium Prompt: Info: "'+e+'"','',
+   '[Field: TS Log '+e+' Fld]','    Use: Name Field','    Set As: ##TSLog'+e+(udf&&TS_VCH[e]?' + " | unsynced: " + $$String:($$NumItems:TS Col '+e+')':''),'    Full Width: Yes','');});
+  if(ALL.length)P('[#Menu: TS Sync Menu]','    Add: Key Item: Retry / Re-run All: R: Call: TS Push All','');
+ }
+ // ---------- pull
  if(o.pull){
-  P(';; EXPERIMENTAL pull: reads remote XML <ENVELOPE><ROW><NAME/><VALUE/></ROW></ENVELOPE>');
-  P('[Collection: TS Pull Col]');P('    RemoteURL: @@TSBaseURL + "/pull"');P('    XMLObjectPath: ROW: 1: ENVELOPE');P('    Fetch: NAME, VALUE');P('');
-  P('[Report: TS Pull Report]');P('    Form: TS Pull Report');P('    Title: "Remote Data (Experimental)"');P('');
-  P('[Form: TS Pull Report]');P('    Part: TS Pull Report');P('');
-  P('[Part: TS Pull Report]');P('    Line: TS Pull Line');P('    Repeat: TS Pull Line: TS Pull Col');P('    Scroll: Vertical');P('');
-  P('[Line: TS Pull Line]');P('    Fields: TS Pull Name, TS Pull Value');P('');
-  P('[Field: TS Pull Name]');P('    Use: Name Field');P('    Set As: $NAME');P('');
-  P('[Field: TS Pull Value]');P('    Use: Name Field');P('    Set As: $VALUE');P('');
+  P(';; [EXPERIMENTAL] Pull: backend returns <ENVELOPE><LEDGER><NAME/><PARENT/></LEDGER>...<STOCKITEM><NAME/><PARENT/><BASEUNITS/></STOCKITEM></ENVELOPE>',
+   '[Menu: TS Pull Menu]','    Title: "Pull from URL (Experimental)"','    Key Item: Preview remote ledgers: V: Display: TS Pull Preview','    Key Item: Create ledgers: L: Call: TS Pull Ledgers','    Key Item: Create stock items: I: Call: TS Pull Items','');
+  [['Ledgers','LEDGER','Ledger','NAME, PARENT'],['Items','STOCKITEM','Stock Item','NAME, PARENT, BASEUNITS']].forEach(([id,tag,ty,fe])=>{
+   P('[Collection: TS Pull Col '+id+']','    Remote URL: @@TSBaseURL + "/pull/'+id.toLowerCase()+'" + @@TSAuthQS','    XMLObjectPath: '+tag+': 1: ENVELOPE','    Fetch: '+fe);
+   if(o.auth==='header')P('    Export Header: "x-api-key: " + ##TSApiKey');if(o.auth==='basic')P('    Export Header: "Authorization: Basic " + ##TSBasicAuth');P('');
+   P('[Function: TS Pull '+id+']','    00: If: NOT @@TSGateOK','    01: Msg Box: "Pull blocked": "Open company does not match the configured company"','    02: Return','    03: End If',
+    '    04: Walk Collection: TS Pull Col '+id,'    05: New Object: '+ty,'    06: Set Value: Name: $NAME','    07: Set Value: Parent: $PARENT');
+   if(id==='Items')P('    08: Set Value: BaseUnits: $BASEUNITS');
+   P('    09: Create Target','    10: End Walk','    11: Msg Box: "Pull": "Done"','');});
+  P('[Report: TS Pull Preview]','    Form: TS Pull Preview','    Title: "Remote Ledgers (Experimental)"','','[Form: TS Pull Preview]','    Part: TS Pull Preview','',
+   '[Part: TS Pull Preview]','    Line: TS Pull Line','    Repeat: TS Pull Line: TS Pull Col Ledgers','    Scroll: Vertical','',
+   '[Line: TS Pull Line]','    Fields: TS Pull Name, TS Pull Parent','','[Field: TS Pull Name]','    Use: Name Field','    Set As: $NAME','',
+   '[Field: TS Pull Parent]','    Use: Name Field','    Set As: $PARENT','');
  }
  return L.join('\r\n')+'\r\n';
 }
 function validateTDL(t){
- const err=[];const known=/^(Add|Title|Key Item|Item|Type|Persistent|Form|Variable|Part|Width|Lines?|Local|Fields?|Use|Max|Set As|Set|Modifies|Fetch|Filter|Export|JSONTag|XMLTag|Repeat|Scroll|Full Width|RemoteURL|XMLObjectPath|\d\d|TS[\w ]*)$/;
- t.split(/\r?\n/).forEach((l,i)=>{const s=l.trim();if(!s||s.startsWith(';;'))return;
-  if(s.startsWith('[')){if(!/^\[[#!]?[A-Za-z ]+:[^\[\]]+\]$/.test(s))err.push('Line '+(i+1)+': bad header');return;}
-  const k=s.split(':')[0].trim();if(!known.test(k))err.push('Line '+(i+1)+': unknown attribute "'+k+'"');
-  if((s.match(/"/g)||[]).length%2)err.push('Line '+(i+1)+': unbalanced quotes');});
- return err;
+ const err=[],seen={};const known=/^(Add|Title|Key Item|Item|Type|Persistent|Form|Variable|Part|Width|Lines?|Local|Fields?|Use|Max|Set As|Modifies|Fetch|Filter|Export|Export Header|JSONTag|XMLTag|Repeat|Scroll|Full Width|Remote URL|XMLObjectPath|Explode|\d\d|TS[\w ]*|On)$/i;
+ t.split(/\r?\n/).forEach((l,i)=>{let s=l.replace(/;;.*$/,'').trim();if(!s)return;
+  if(s.startsWith('[')){if(!/^\[[#!]?[A-Za-z ]+:[^\[\]]+\]$/.test(s))err.push('L'+(i+1)+': bad header');
+   else if(!s.startsWith('[#')&&!/^\[System/.test(s)){if(seen[s])err.push('L'+(i+1)+': duplicate '+s);seen[s]=1;}return;}
+  const k=s.split(':')[0].trim();if(!known.test(k))err.push('L'+(i+1)+': unknown attribute "'+k+'"');
+  if((s.match(/"/g)||[]).length%2)err.push('L'+(i+1)+': unbalanced quotes');
+  let d=0;for(const c of s){if(c==='(')d++;if(c===')')d--;}if(d)err.push('L'+(i+1)+': unbalanced ()');});
+ // referenced definitions exist
+ const def=n=>new RegExp('^\\[(Report|Form|Part|Line|Field|Collection|Function|Menu): '+n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\]','m').test(t);
+ for(const m of t.matchAll(/(?:Display|Call|Menu|Form|Part|Repeat|Explode|Walk Collection)\s*:\s*(TS [A-Za-z ]+?)(?=\s*(:|$|,|\r))/gm)){if(!def(m[1]))err.push('missing definition: '+m[1]);}
+ return [...new Set(err)];
 }
-if(typeof module!=='undefined')module.exports={genTDL,validateTDL};
+if(typeof module!=='undefined')module.exports={genTDL,validateTDL,TS_VCH,TS_MST,TS_CONF};
 
-const ALL=['Sales','Purchases','SalesOrders','PurchaseOrders','Receipts','Payments','Ledgers','StockItems'];
-ents.innerHTML=ALL.map(e=>`<label><input type=checkbox class=ent value=${e} checked> ${e}</label>`).join('');
 const g=id=>document.getElementById(id);
-function opts(){const o={};['menuName','menuKey','fromDefault','format','url','apiKey','company'].forEach(k=>o[k]=g(k).value);['config','dates','pull'].forEach(k=>o[k]=g(k).checked);o.entities=[...document.querySelectorAll('.ent:checked')].map(x=>x.value);return o}
-function upd(){const t=genTDL(opts());out.textContent=t;const e=validateTDL(t);v.textContent=e.length?'⚠ '+e.join('; '):'✓ Structure check passed (not a Tally compile check)';return t}
-document.addEventListener('input',upd);
+const cb=(box,obj,cls,def)=>g(box).innerHTML=Object.keys(obj).map(k=>`<label><input type=checkbox class=${cls} value=${k} ${def.includes(k)?'checked':''}> ${obj[k]}</label>`).join('');
+cb('vch',TS_VCH,'v',['Sales','Purchases','SalesOrders','PurchaseOrders','Receipts','Payments','CreditNotes','DebitNotes']);
+cb('mst',TS_MST,'m',['Ledgers','StockItems']);cb('autoV',TS_VCH,'av',[]);
+const sel=c=>[...document.querySelectorAll('.'+c+':checked')].map(x=>x.value);
+function opts(){const o={};['menuName','menuKey','fromDefault','format','depth','incremental','chunk','timerMin','auth','basic','gate','gateCompany','gateGstin','url','apiKey','company'].forEach(k=>o[k]=g(k).value);
+['config','dates','log','stock','udf','autoMst','timer','pull'].forEach(k=>o[k]=g(k).checked);o.vouchers=sel('v');o.masters=sel('m');o.autoVch=sel('av');return o}
+function upd(){const t=genTDL(opts());out.textContent=t;const e=validateTDL(t);v.textContent=e.length?'\u26a0 '+e.join('; '):'\u2713 Structure check passed (not a Tally compile check) \u2014 '+t.split('\n').length+' lines';return t}
+document.addEventListener('input',upd);document.addEventListener('change',upd);
 dl.onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([upd()],{type:'text/plain'}));a.download=g('fname').value||'tallysync.tdl';a.click()};
-
 (function(){const sp=g('sp'),r=document.body.style,K='tdlmaker.lw';
 const set=w=>{w=Math.max(300,Math.min(w,innerWidth-306));r.setProperty('--lw',w+'px');return w};
 const sv=localStorage.getItem(K);if(sv)set(+sv);

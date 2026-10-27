@@ -1,0 +1,78 @@
+<!doctype html><html><head><meta charset="utf-8"><title>TDL Maker</title>
+<style>
+*{box-sizing:border-box}html,body{height:100%}
+body{font-family:system-ui,sans-serif;margin:0;display:grid;grid-template-columns:var(--lw,420px) 6px minmax(300px,1fr);height:100vh;overflow:hidden}
+#f{padding:16px 20px;overflow:auto;background:#f6f7f9;border-right:1px solid #ddd;min-width:0}
+#p{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+pre{flex:1;min-height:0;margin:0;padding:12px;overflow:auto;white-space:pre;background:#1e1e1e;color:#ddd;font-size:12px}
+label{display:block;margin:8px 0;font-size:14px}
+input[type=text],select{display:block;width:100%;margin-top:4px;padding:6px}
+input[type=checkbox]{margin-right:6px}
+label:has(input[type=checkbox]){display:flex;align-items:center}
+fieldset{margin:10px 0;border:1px solid #ccc}
+#v{padding:6px 12px;font-size:13px;background:#eef}button{padding:8px 14px;margin-top:8px}
+#sp{cursor:col-resize;background:#ccc;touch-action:none}#sp:hover,#sp.on{background:#4a90e2}
+@media (max-width:900px){#sp{display:none}body{display:block;height:auto;overflow:auto}#f{border-right:0}#p{height:80vh}}
+.b{display:inline-block;font-size:10px;padding:0 5px;border-radius:8px;color:#fff;vertical-align:middle}.b.V{background:#2e7d32}.b.E{background:#e65100}.grid{display:grid;grid-template-columns:1fr 1fr}.grid label{margin:3px 0}.leg{font-size:12px}fieldset p{margin:6px 0;font-size:14px}
+</style></head><body>
+<div id="f"><h2>TDL Maker <small style="font-size:12px;color:#666">v0.2</small></h2>
+<p class=leg><span class="b V">V</span> syntax from TallyHelp docs &nbsp;<span class="b E">E</span> experimental</p>
+<fieldset><legend>Menu &amp; screens</legend>
+<label>Menu name <input type=text id=menuName value="Sync"></label>
+<label>Menu hotkey <input type=text id=menuKey value="Y" maxlength=1></label>
+<label><input type=checkbox id=config checked> Configuration screen (persistent) <span class="b V">V</span></label>
+<label><input type=checkbox id=dates checked> Date range selectors <span class="b V">V</span></label>
+<label>From default <select id=fromDefault><option value=month>Current month start</option><option value=fy>Books period start (SVFromDate)</option></select></label>
+<label><input type=checkbox id=log checked> Sync log report + retry <span class="b E">E</span></label></fieldset>
+<fieldset><legend>Vouchers to push <span class="b V">V</span></legend><div id=vch class=grid></div></fieldset>
+<fieldset><legend>Masters &amp; inventory <span class="b V">V</span></legend><div id=mst class=grid></div>
+<label><input type=checkbox id=stock> Stock summary / closing balances <span class="b E">E</span></label></fieldset>
+<fieldset><legend>Data</legend>
+<label>Format <select id=format><option>XML</option><option value=JSON>JSON (E)</option></select></label>
+<label>Field depth <select id=depth><option value=header>Header only</option><option value=full>Full: ledger, inventory, bill allocations, GST (E)</option></select></label>
+<label>Sync mode <select id=incremental><option value=none>Full date range</option><option value=alterid>Incremental: changed since last AlterID (E)</option></select></label>
+<label>Chunking <select id=chunk><option value=none>One request</option><option value=month>One request per month (E)</option><option value=day>One request per day (E)</option></select></label>
+<label><input type=checkbox id=udf> Sync-status UDF on vouchers/masters, skip synced <span class="b E">E</span></label></fieldset>
+<fieldset><legend>Automation</legend>
+<p>Auto-push on voucher save <span class="b E">E</span></p><div id=autoV class=grid></div>
+<label><input type=checkbox id=autoMst> Auto-push ledger / stock item on save <span class="b E">E</span></label>
+<label><input type=checkbox id=timer> Scheduled sync (System Timer) <span class="b V">V</span></label>
+<label>Interval (minutes) <input type=text id=timerMin value="15"></label></fieldset>
+<fieldset><legend>Security</legend>
+<label>Auth <select id=auth><option value=header>x-api-key HTTP header (V)</option><option value=body>API key in request body (V)</option><option value=query>?apikey= query param (V)</option><option value=basic>Basic auth header (V)</option></select></label>
+<label>Basic auth value (base64 of user:pass) <input type=text id=basic value=""></label>
+<label>Company gate <select id=gate><option value=none>Off</option><option value=name>Company name must match (V)</option><option value=gstin>Name + GSTIN must match (E)</option></select></label>
+<label>Allowed company name <input type=text id=gateCompany value=""></label>
+<label>Allowed GSTIN <input type=text id=gateGstin value=""></label></fieldset>
+<fieldset><legend>Pull <span class="b E">E</span></legend>
+<label><input type=checkbox id=pull> Pull ledgers &amp; stock items from URL into Tally</label></fieldset>
+<fieldset><legend>Endpoint</legend>
+<label>API URL (placeholders {company} {companyname} {fromdate} {todate})<input type=text id=url value="https://api.example.com/tally/{company}"></label>
+<label>API key <input type=text id=apiKey value="YOUR_API_KEY"></label>
+<label>Company code <input type=text id=company value="ACME"></label></fieldset>
+<label>File name <input type=text id=fname value="tallysync.tdl"></label>
+<button id=dl>Download .tdl</button>
+<h4>Load in Tally</h4><ol><li>Save the .tdl on the Tally PC.</li><li>F1 &gt; TDL &amp; Add-On &gt; Manage Local TDLs.</li><li>Load TDL on startup: Yes; add the full file path.</li><li>Check status says Loaded; open Gateway &gt; your menu.</li><li>Backend must answer &lt;ENVELOPE&gt;&lt;STATUS&gt;1&lt;/STATUS&gt;&lt;/ENVELOPE&gt; for success.</li></ol></div>
+<div id="sp" title="Drag to resize, double-click to reset"></div><div id="p"><div id=v></div><pre id=out></pre></div>
+<script>/*GEN*/
+const g=id=>document.getElementById(id);
+const cb=(box,obj,cls,def)=>g(box).innerHTML=Object.keys(obj).map(k=>`<label><input type=checkbox class=${cls} value=${k} ${def.includes(k)?'checked':''}> ${obj[k]}</label>`).join('');
+cb('vch',TS_VCH,'v',['Sales','Purchases','SalesOrders','PurchaseOrders','Receipts','Payments','CreditNotes','DebitNotes']);
+cb('mst',TS_MST,'m',['Ledgers','StockItems']);cb('autoV',TS_VCH,'av',[]);
+const sel=c=>[...document.querySelectorAll('.'+c+':checked')].map(x=>x.value);
+function opts(){const o={};['menuName','menuKey','fromDefault','format','depth','incremental','chunk','timerMin','auth','basic','gate','gateCompany','gateGstin','url','apiKey','company'].forEach(k=>o[k]=g(k).value);
+['config','dates','log','stock','udf','autoMst','timer','pull'].forEach(k=>o[k]=g(k).checked);o.vouchers=sel('v');o.masters=sel('m');o.autoVch=sel('av');return o}
+function upd(){const t=genTDL(opts());out.textContent=t;const e=validateTDL(t);v.textContent=e.length?'\u26a0 '+e.join('; '):'\u2713 Structure check passed (not a Tally compile check) \u2014 '+t.split('\n').length+' lines';return t}
+document.addEventListener('input',upd);document.addEventListener('change',upd);
+dl.onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([upd()],{type:'text/plain'}));a.download=g('fname').value||'tallysync.tdl';a.click()};
+(function(){const sp=g('sp'),r=document.body.style,K='tdlmaker.lw';
+const set=w=>{w=Math.max(300,Math.min(w,innerWidth-306));r.setProperty('--lw',w+'px');return w};
+const sv=localStorage.getItem(K);if(sv)set(+sv);
+let d=0;const mv=e=>{if(!d)return;const x=(e.touches?e.touches[0]:e).clientX;localStorage.setItem(K,set(x));e.preventDefault()};
+const up=()=>{d=0;sp.classList.remove('on');document.body.style.userSelect=''};
+const dn=e=>{d=1;sp.classList.add('on');document.body.style.userSelect='none';e.preventDefault()};
+sp.addEventListener('mousedown',dn);sp.addEventListener('touchstart',dn,{passive:false});
+addEventListener('mousemove',mv);addEventListener('touchmove',mv,{passive:false});
+addEventListener('mouseup',up);addEventListener('touchend',up);
+sp.addEventListener('dblclick',()=>{r.removeProperty('--lw');localStorage.removeItem(K)});})();
+upd();</script></body></html>
