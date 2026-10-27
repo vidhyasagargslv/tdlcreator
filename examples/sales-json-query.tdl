@@ -242,6 +242,7 @@
     08: Else
     09: HTTP Post: @@TSBaseURL + "/sales" + @@TSAuthQS: UTF8: TS Req Sales: TS Resp Err: TS Resp Ok
     10: End If
+
     11: Set: TSLogSales: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Sales) + " records sent"
 
 [Collection: TS Col Receipts]
@@ -283,6 +284,7 @@
     08: Else
     09: HTTP Post: @@TSBaseURL + "/receipts" + @@TSAuthQS: UTF8: TS Req Receipts: TS Resp Err: TS Resp Ok
     10: End If
+
     11: Set: TSLogReceipts: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Receipts) + " records sent"
 
 [Collection: TS Col CreditNotes]
@@ -324,6 +326,7 @@
     08: Else
     09: HTTP Post: @@TSBaseURL + "/creditnotes" + @@TSAuthQS: UTF8: TS Req CreditNotes: TS Resp Err: TS Resp Ok
     10: End If
+
     11: Set: TSLogCreditNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col CreditNotes) + " records sent"
 
 [Collection: TS Col Ledgers]
@@ -364,6 +367,7 @@
     08: Else
     09: HTTP Post: @@TSBaseURL + "/ledgers" + @@TSAuthQS: UTF8: TS Req Ledgers: TS Resp Err: TS Resp Ok
     10: End If
+
     11: Set: TSLogLedgers: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Ledgers) + " records sent"
 
 [System: Formula]

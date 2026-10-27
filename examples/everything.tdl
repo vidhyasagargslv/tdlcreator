@@ -449,22 +449,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/sales" + @@TSAuthQS: ASCII: TS Req Sales
+    08: HTTP Request: @@TSBaseURL + "/sales" + @@TSAuthQS: POST: XML: ASCII: TS Req Sales: TS After Sales
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/sales" + @@TSAuthQS: ASCII: TS Req Sales: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/sales" + @@TSAuthQS: POST: XML: ASCII: TS Req Sales: TS After Sales
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col Sales
-    17: Set: TSAltSales: if $AlterID > ##TSAltSales then $AlterID else ##TSAltSales
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogSales: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Sales) + " records sent"
+
+[Function: TS After Sales]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col Sales
+    06: Set: TSAltSales: if $AlterID > ##TSAltSales then $AlterID else ##TSAltSales
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogSales: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push Sales": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogSales: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push Sales": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col Purchases]
     Type: Voucher
@@ -504,22 +519,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/purchases" + @@TSAuthQS: ASCII: TS Req Purchases
+    08: HTTP Request: @@TSBaseURL + "/purchases" + @@TSAuthQS: POST: XML: ASCII: TS Req Purchases: TS After Purchases
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/purchases" + @@TSAuthQS: ASCII: TS Req Purchases: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/purchases" + @@TSAuthQS: POST: XML: ASCII: TS Req Purchases: TS After Purchases
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col Purchases
-    17: Set: TSAltPurchases: if $AlterID > ##TSAltPurchases then $AlterID else ##TSAltPurchases
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogPurchases: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Purchases) + " records sent"
+
+[Function: TS After Purchases]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col Purchases
+    06: Set: TSAltPurchases: if $AlterID > ##TSAltPurchases then $AlterID else ##TSAltPurchases
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogPurchases: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push Purchases": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogPurchases: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push Purchases": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col SalesOrders]
     Type: Voucher
@@ -559,22 +589,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/salesorders" + @@TSAuthQS: ASCII: TS Req SalesOrders
+    08: HTTP Request: @@TSBaseURL + "/salesorders" + @@TSAuthQS: POST: XML: ASCII: TS Req SalesOrders: TS After SalesOrders
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/salesorders" + @@TSAuthQS: ASCII: TS Req SalesOrders: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/salesorders" + @@TSAuthQS: POST: XML: ASCII: TS Req SalesOrders: TS After SalesOrders
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col SalesOrders
-    17: Set: TSAltSalesOrders: if $AlterID > ##TSAltSalesOrders then $AlterID else ##TSAltSalesOrders
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogSalesOrders: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col SalesOrders) + " records sent"
+
+[Function: TS After SalesOrders]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col SalesOrders
+    06: Set: TSAltSalesOrders: if $AlterID > ##TSAltSalesOrders then $AlterID else ##TSAltSalesOrders
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogSalesOrders: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push SalesOrders": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogSalesOrders: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push SalesOrders": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col PurchaseOrders]
     Type: Voucher
@@ -614,22 +659,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/purchaseorders" + @@TSAuthQS: ASCII: TS Req PurchaseOrders
+    08: HTTP Request: @@TSBaseURL + "/purchaseorders" + @@TSAuthQS: POST: XML: ASCII: TS Req PurchaseOrders: TS After PurchaseOrders
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/purchaseorders" + @@TSAuthQS: ASCII: TS Req PurchaseOrders: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/purchaseorders" + @@TSAuthQS: POST: XML: ASCII: TS Req PurchaseOrders: TS After PurchaseOrders
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col PurchaseOrders
-    17: Set: TSAltPurchaseOrders: if $AlterID > ##TSAltPurchaseOrders then $AlterID else ##TSAltPurchaseOrders
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogPurchaseOrders: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col PurchaseOrders) + " records sent"
+
+[Function: TS After PurchaseOrders]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col PurchaseOrders
+    06: Set: TSAltPurchaseOrders: if $AlterID > ##TSAltPurchaseOrders then $AlterID else ##TSAltPurchaseOrders
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogPurchaseOrders: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push PurchaseOrders": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogPurchaseOrders: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push PurchaseOrders": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col Receipts]
     Type: Voucher
@@ -669,22 +729,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/receipts" + @@TSAuthQS: ASCII: TS Req Receipts
+    08: HTTP Request: @@TSBaseURL + "/receipts" + @@TSAuthQS: POST: XML: ASCII: TS Req Receipts: TS After Receipts
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/receipts" + @@TSAuthQS: ASCII: TS Req Receipts: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/receipts" + @@TSAuthQS: POST: XML: ASCII: TS Req Receipts: TS After Receipts
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col Receipts
-    17: Set: TSAltReceipts: if $AlterID > ##TSAltReceipts then $AlterID else ##TSAltReceipts
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogReceipts: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Receipts) + " records sent"
+
+[Function: TS After Receipts]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col Receipts
+    06: Set: TSAltReceipts: if $AlterID > ##TSAltReceipts then $AlterID else ##TSAltReceipts
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogReceipts: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push Receipts": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogReceipts: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push Receipts": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col Payments]
     Type: Voucher
@@ -724,22 +799,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/payments" + @@TSAuthQS: ASCII: TS Req Payments
+    08: HTTP Request: @@TSBaseURL + "/payments" + @@TSAuthQS: POST: XML: ASCII: TS Req Payments: TS After Payments
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/payments" + @@TSAuthQS: ASCII: TS Req Payments: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/payments" + @@TSAuthQS: POST: XML: ASCII: TS Req Payments: TS After Payments
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col Payments
-    17: Set: TSAltPayments: if $AlterID > ##TSAltPayments then $AlterID else ##TSAltPayments
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogPayments: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Payments) + " records sent"
+
+[Function: TS After Payments]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col Payments
+    06: Set: TSAltPayments: if $AlterID > ##TSAltPayments then $AlterID else ##TSAltPayments
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogPayments: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push Payments": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogPayments: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push Payments": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col CreditNotes]
     Type: Voucher
@@ -779,22 +869,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/creditnotes" + @@TSAuthQS: ASCII: TS Req CreditNotes
+    08: HTTP Request: @@TSBaseURL + "/creditnotes" + @@TSAuthQS: POST: XML: ASCII: TS Req CreditNotes: TS After CreditNotes
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/creditnotes" + @@TSAuthQS: ASCII: TS Req CreditNotes: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/creditnotes" + @@TSAuthQS: POST: XML: ASCII: TS Req CreditNotes: TS After CreditNotes
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col CreditNotes
-    17: Set: TSAltCreditNotes: if $AlterID > ##TSAltCreditNotes then $AlterID else ##TSAltCreditNotes
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogCreditNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col CreditNotes) + " records sent"
+
+[Function: TS After CreditNotes]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col CreditNotes
+    06: Set: TSAltCreditNotes: if $AlterID > ##TSAltCreditNotes then $AlterID else ##TSAltCreditNotes
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogCreditNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push CreditNotes": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogCreditNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push CreditNotes": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col DebitNotes]
     Type: Voucher
@@ -834,22 +939,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/debitnotes" + @@TSAuthQS: ASCII: TS Req DebitNotes
+    08: HTTP Request: @@TSBaseURL + "/debitnotes" + @@TSAuthQS: POST: XML: ASCII: TS Req DebitNotes: TS After DebitNotes
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/debitnotes" + @@TSAuthQS: ASCII: TS Req DebitNotes: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/debitnotes" + @@TSAuthQS: POST: XML: ASCII: TS Req DebitNotes: TS After DebitNotes
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col DebitNotes
-    17: Set: TSAltDebitNotes: if $AlterID > ##TSAltDebitNotes then $AlterID else ##TSAltDebitNotes
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogDebitNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col DebitNotes) + " records sent"
+
+[Function: TS After DebitNotes]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col DebitNotes
+    06: Set: TSAltDebitNotes: if $AlterID > ##TSAltDebitNotes then $AlterID else ##TSAltDebitNotes
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogDebitNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push DebitNotes": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogDebitNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push DebitNotes": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col Journals]
     Type: Voucher
@@ -889,22 +1009,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/journals" + @@TSAuthQS: ASCII: TS Req Journals
+    08: HTTP Request: @@TSBaseURL + "/journals" + @@TSAuthQS: POST: XML: ASCII: TS Req Journals: TS After Journals
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/journals" + @@TSAuthQS: ASCII: TS Req Journals: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/journals" + @@TSAuthQS: POST: XML: ASCII: TS Req Journals: TS After Journals
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col Journals
-    17: Set: TSAltJournals: if $AlterID > ##TSAltJournals then $AlterID else ##TSAltJournals
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogJournals: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Journals) + " records sent"
+
+[Function: TS After Journals]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col Journals
+    06: Set: TSAltJournals: if $AlterID > ##TSAltJournals then $AlterID else ##TSAltJournals
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogJournals: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push Journals": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogJournals: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push Journals": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col Contras]
     Type: Voucher
@@ -944,22 +1079,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/contras" + @@TSAuthQS: ASCII: TS Req Contras
+    08: HTTP Request: @@TSBaseURL + "/contras" + @@TSAuthQS: POST: XML: ASCII: TS Req Contras: TS After Contras
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/contras" + @@TSAuthQS: ASCII: TS Req Contras: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/contras" + @@TSAuthQS: POST: XML: ASCII: TS Req Contras: TS After Contras
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col Contras
-    17: Set: TSAltContras: if $AlterID > ##TSAltContras then $AlterID else ##TSAltContras
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogContras: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Contras) + " records sent"
+
+[Function: TS After Contras]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col Contras
+    06: Set: TSAltContras: if $AlterID > ##TSAltContras then $AlterID else ##TSAltContras
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogContras: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push Contras": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogContras: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push Contras": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col StockJournals]
     Type: Voucher
@@ -999,22 +1149,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/stockjournals" + @@TSAuthQS: ASCII: TS Req StockJournals
+    08: HTTP Request: @@TSBaseURL + "/stockjournals" + @@TSAuthQS: POST: XML: ASCII: TS Req StockJournals: TS After StockJournals
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/stockjournals" + @@TSAuthQS: ASCII: TS Req StockJournals: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/stockjournals" + @@TSAuthQS: POST: XML: ASCII: TS Req StockJournals: TS After StockJournals
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col StockJournals
-    17: Set: TSAltStockJournals: if $AlterID > ##TSAltStockJournals then $AlterID else ##TSAltStockJournals
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogStockJournals: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col StockJournals) + " records sent"
+
+[Function: TS After StockJournals]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col StockJournals
+    06: Set: TSAltStockJournals: if $AlterID > ##TSAltStockJournals then $AlterID else ##TSAltStockJournals
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogStockJournals: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push StockJournals": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogStockJournals: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push StockJournals": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col DeliveryNotes]
     Type: Voucher
@@ -1054,22 +1219,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/deliverynotes" + @@TSAuthQS: ASCII: TS Req DeliveryNotes
+    08: HTTP Request: @@TSBaseURL + "/deliverynotes" + @@TSAuthQS: POST: XML: ASCII: TS Req DeliveryNotes: TS After DeliveryNotes
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/deliverynotes" + @@TSAuthQS: ASCII: TS Req DeliveryNotes: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/deliverynotes" + @@TSAuthQS: POST: XML: ASCII: TS Req DeliveryNotes: TS After DeliveryNotes
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col DeliveryNotes
-    17: Set: TSAltDeliveryNotes: if $AlterID > ##TSAltDeliveryNotes then $AlterID else ##TSAltDeliveryNotes
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogDeliveryNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col DeliveryNotes) + " records sent"
+
+[Function: TS After DeliveryNotes]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col DeliveryNotes
+    06: Set: TSAltDeliveryNotes: if $AlterID > ##TSAltDeliveryNotes then $AlterID else ##TSAltDeliveryNotes
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogDeliveryNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push DeliveryNotes": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogDeliveryNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push DeliveryNotes": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col ReceiptNotes]
     Type: Voucher
@@ -1109,22 +1289,37 @@
     05: While: ##TSChunkFrom <= ##TSToDate
     06: Set: TSChunkTo: if $$MonthEnd:##TSChunkFrom > ##TSToDate then ##TSToDate else $$MonthEnd:##TSChunkFrom
     07: If: ##TSQuiet
-    08: HTTP Post: @@TSBaseURL + "/receiptnotes" + @@TSAuthQS: ASCII: TS Req ReceiptNotes
+    08: HTTP Request: @@TSBaseURL + "/receiptnotes" + @@TSAuthQS: POST: XML: ASCII: TS Req ReceiptNotes: TS After ReceiptNotes
     09: Else
-    10: HTTP Post: @@TSBaseURL + "/receiptnotes" + @@TSAuthQS: ASCII: TS Req ReceiptNotes: TS Resp Err: TS Resp Ok
+    10: HTTP Request: @@TSBaseURL + "/receiptnotes" + @@TSAuthQS: POST: XML: ASCII: TS Req ReceiptNotes: TS After ReceiptNotes
     11: End If
     12: Set: TSChunkFrom: ##TSChunkTo + 1
     13: End While
-    14: Set: TSChunkFrom: ##TSFromDate
-    15: Set: TSChunkTo: ##TSToDate
-    16: Walk Collection: TS Col ReceiptNotes
-    17: Set: TSAltReceiptNotes: if $AlterID > ##TSAltReceiptNotes then $AlterID else ##TSAltReceiptNotes
-    18: Set Target
-    19: Set Value: TSSynced: Yes
-    20: Set Value: TSSyncedOn: $$MachineDate
-    21: Save Target
-    22: End Walk
-    23: Set: TSLogReceiptNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col ReceiptNotes) + " records sent"
+
+[Function: TS After ReceiptNotes]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col ReceiptNotes
+    06: Set: TSAltReceiptNotes: if $AlterID > ##TSAltReceiptNotes then $AlterID else ##TSAltReceiptNotes
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogReceiptNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push ReceiptNotes": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogReceiptNotes: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push ReceiptNotes": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col Ledgers]
     Type: Ledger
@@ -1161,20 +1356,35 @@
     04: Set: TSChunkFrom: ##TSFromDate
     05: Set: TSChunkTo: ##TSToDate
     06: If: ##TSQuiet
-    07: HTTP Post: @@TSBaseURL + "/ledgers" + @@TSAuthQS: ASCII: TS Req Ledgers
+    07: HTTP Request: @@TSBaseURL + "/ledgers" + @@TSAuthQS: POST: XML: ASCII: TS Req Ledgers: TS After Ledgers
     08: Else
-    09: HTTP Post: @@TSBaseURL + "/ledgers" + @@TSAuthQS: ASCII: TS Req Ledgers: TS Resp Err: TS Resp Ok
+    09: HTTP Request: @@TSBaseURL + "/ledgers" + @@TSAuthQS: POST: XML: ASCII: TS Req Ledgers: TS After Ledgers
     10: End If
-    11: Set: TSChunkFrom: ##TSFromDate
-    12: Set: TSChunkTo: ##TSToDate
-    13: Walk Collection: TS Col Ledgers
-    14: Set: TSAltLedgers: if $AlterID > ##TSAltLedgers then $AlterID else ##TSAltLedgers
-    15: Set Target
-    16: Set Value: TSSynced: Yes
-    17: Set Value: TSSyncedOn: $$MachineDate
-    18: Save Target
-    19: End Walk
-    20: Set: TSLogLedgers: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Ledgers) + " records sent"
+
+[Function: TS After Ledgers]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col Ledgers
+    06: Set: TSAltLedgers: if $AlterID > ##TSAltLedgers then $AlterID else ##TSAltLedgers
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogLedgers: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push Ledgers": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogLedgers: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push Ledgers": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col StockItems]
     Type: Stock Item
@@ -1211,20 +1421,35 @@
     04: Set: TSChunkFrom: ##TSFromDate
     05: Set: TSChunkTo: ##TSToDate
     06: If: ##TSQuiet
-    07: HTTP Post: @@TSBaseURL + "/stockitems" + @@TSAuthQS: ASCII: TS Req StockItems
+    07: HTTP Request: @@TSBaseURL + "/stockitems" + @@TSAuthQS: POST: XML: ASCII: TS Req StockItems: TS After StockItems
     08: Else
-    09: HTTP Post: @@TSBaseURL + "/stockitems" + @@TSAuthQS: ASCII: TS Req StockItems: TS Resp Err: TS Resp Ok
+    09: HTTP Request: @@TSBaseURL + "/stockitems" + @@TSAuthQS: POST: XML: ASCII: TS Req StockItems: TS After StockItems
     10: End If
-    11: Set: TSChunkFrom: ##TSFromDate
-    12: Set: TSChunkTo: ##TSToDate
-    13: Walk Collection: TS Col StockItems
-    14: Set: TSAltStockItems: if $AlterID > ##TSAltStockItems then $AlterID else ##TSAltStockItems
-    15: Set Target
-    16: Set Value: TSSynced: Yes
-    17: Set Value: TSSyncedOn: $$MachineDate
-    18: Save Target
-    19: End Walk
-    20: Set: TSLogStockItems: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col StockItems) + " records sent"
+
+[Function: TS After StockItems]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col StockItems
+    06: Set: TSAltStockItems: if $AlterID > ##TSAltStockItems then $AlterID else ##TSAltStockItems
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogStockItems: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push StockItems": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogStockItems: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push StockItems": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col Groups]
     Type: Group
@@ -1261,20 +1486,35 @@
     04: Set: TSChunkFrom: ##TSFromDate
     05: Set: TSChunkTo: ##TSToDate
     06: If: ##TSQuiet
-    07: HTTP Post: @@TSBaseURL + "/groups" + @@TSAuthQS: ASCII: TS Req Groups
+    07: HTTP Request: @@TSBaseURL + "/groups" + @@TSAuthQS: POST: XML: ASCII: TS Req Groups: TS After Groups
     08: Else
-    09: HTTP Post: @@TSBaseURL + "/groups" + @@TSAuthQS: ASCII: TS Req Groups: TS Resp Err: TS Resp Ok
+    09: HTTP Request: @@TSBaseURL + "/groups" + @@TSAuthQS: POST: XML: ASCII: TS Req Groups: TS After Groups
     10: End If
-    11: Set: TSChunkFrom: ##TSFromDate
-    12: Set: TSChunkTo: ##TSToDate
-    13: Walk Collection: TS Col Groups
-    14: Set: TSAltGroups: if $AlterID > ##TSAltGroups then $AlterID else ##TSAltGroups
-    15: Set Target
-    16: Set Value: TSSynced: Yes
-    17: Set Value: TSSyncedOn: $$MachineDate
-    18: Save Target
-    19: End Walk
-    20: Set: TSLogGroups: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Groups) + " records sent"
+
+[Function: TS After Groups]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col Groups
+    06: Set: TSAltGroups: if $AlterID > ##TSAltGroups then $AlterID else ##TSAltGroups
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogGroups: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push Groups": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogGroups: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push Groups": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col Units]
     Type: Unit
@@ -1311,20 +1551,35 @@
     04: Set: TSChunkFrom: ##TSFromDate
     05: Set: TSChunkTo: ##TSToDate
     06: If: ##TSQuiet
-    07: HTTP Post: @@TSBaseURL + "/units" + @@TSAuthQS: ASCII: TS Req Units
+    07: HTTP Request: @@TSBaseURL + "/units" + @@TSAuthQS: POST: XML: ASCII: TS Req Units: TS After Units
     08: Else
-    09: HTTP Post: @@TSBaseURL + "/units" + @@TSAuthQS: ASCII: TS Req Units: TS Resp Err: TS Resp Ok
+    09: HTTP Request: @@TSBaseURL + "/units" + @@TSAuthQS: POST: XML: ASCII: TS Req Units: TS After Units
     10: End If
-    11: Set: TSChunkFrom: ##TSFromDate
-    12: Set: TSChunkTo: ##TSToDate
-    13: Walk Collection: TS Col Units
-    14: Set: TSAltUnits: if $AlterID > ##TSAltUnits then $AlterID else ##TSAltUnits
-    15: Set Target
-    16: Set Value: TSSynced: Yes
-    17: Set Value: TSSyncedOn: $$MachineDate
-    18: Save Target
-    19: End Walk
-    20: Set: TSLogUnits: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Units) + " records sent"
+
+[Function: TS After Units]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col Units
+    06: Set: TSAltUnits: if $AlterID > ##TSAltUnits then $AlterID else ##TSAltUnits
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogUnits: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push Units": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogUnits: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push Units": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col Godowns]
     Type: Godown
@@ -1361,20 +1616,35 @@
     04: Set: TSChunkFrom: ##TSFromDate
     05: Set: TSChunkTo: ##TSToDate
     06: If: ##TSQuiet
-    07: HTTP Post: @@TSBaseURL + "/godowns" + @@TSAuthQS: ASCII: TS Req Godowns
+    07: HTTP Request: @@TSBaseURL + "/godowns" + @@TSAuthQS: POST: XML: ASCII: TS Req Godowns: TS After Godowns
     08: Else
-    09: HTTP Post: @@TSBaseURL + "/godowns" + @@TSAuthQS: ASCII: TS Req Godowns: TS Resp Err: TS Resp Ok
+    09: HTTP Request: @@TSBaseURL + "/godowns" + @@TSAuthQS: POST: XML: ASCII: TS Req Godowns: TS After Godowns
     10: End If
-    11: Set: TSChunkFrom: ##TSFromDate
-    12: Set: TSChunkTo: ##TSToDate
-    13: Walk Collection: TS Col Godowns
-    14: Set: TSAltGodowns: if $AlterID > ##TSAltGodowns then $AlterID else ##TSAltGodowns
-    15: Set Target
-    16: Set Value: TSSynced: Yes
-    17: Set Value: TSSyncedOn: $$MachineDate
-    18: Save Target
-    19: End Walk
-    20: Set: TSLogGodowns: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col Godowns) + " records sent"
+
+[Function: TS After Godowns]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col Godowns
+    06: Set: TSAltGodowns: if $AlterID > ##TSAltGodowns then $AlterID else ##TSAltGodowns
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogGodowns: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push Godowns": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogGodowns: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push Godowns": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col StockGroups]
     Type: Stock Group
@@ -1411,20 +1681,35 @@
     04: Set: TSChunkFrom: ##TSFromDate
     05: Set: TSChunkTo: ##TSToDate
     06: If: ##TSQuiet
-    07: HTTP Post: @@TSBaseURL + "/stockgroups" + @@TSAuthQS: ASCII: TS Req StockGroups
+    07: HTTP Request: @@TSBaseURL + "/stockgroups" + @@TSAuthQS: POST: XML: ASCII: TS Req StockGroups: TS After StockGroups
     08: Else
-    09: HTTP Post: @@TSBaseURL + "/stockgroups" + @@TSAuthQS: ASCII: TS Req StockGroups: TS Resp Err: TS Resp Ok
+    09: HTTP Request: @@TSBaseURL + "/stockgroups" + @@TSAuthQS: POST: XML: ASCII: TS Req StockGroups: TS After StockGroups
     10: End If
-    11: Set: TSChunkFrom: ##TSFromDate
-    12: Set: TSChunkTo: ##TSToDate
-    13: Walk Collection: TS Col StockGroups
-    14: Set: TSAltStockGroups: if $AlterID > ##TSAltStockGroups then $AlterID else ##TSAltStockGroups
-    15: Set Target
-    16: Set Value: TSSynced: Yes
-    17: Set Value: TSSyncedOn: $$MachineDate
-    18: Save Target
-    19: End Walk
-    20: Set: TSLogStockGroups: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col StockGroups) + " records sent"
+
+[Function: TS After StockGroups]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col StockGroups
+    06: Set: TSAltStockGroups: if $AlterID > ##TSAltStockGroups then $AlterID else ##TSAltStockGroups
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogStockGroups: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push StockGroups": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogStockGroups: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push StockGroups": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col CostCentres]
     Type: Cost Centre
@@ -1461,20 +1746,35 @@
     04: Set: TSChunkFrom: ##TSFromDate
     05: Set: TSChunkTo: ##TSToDate
     06: If: ##TSQuiet
-    07: HTTP Post: @@TSBaseURL + "/costcentres" + @@TSAuthQS: ASCII: TS Req CostCentres
+    07: HTTP Request: @@TSBaseURL + "/costcentres" + @@TSAuthQS: POST: XML: ASCII: TS Req CostCentres: TS After CostCentres
     08: Else
-    09: HTTP Post: @@TSBaseURL + "/costcentres" + @@TSAuthQS: ASCII: TS Req CostCentres: TS Resp Err: TS Resp Ok
+    09: HTTP Request: @@TSBaseURL + "/costcentres" + @@TSAuthQS: POST: XML: ASCII: TS Req CostCentres: TS After CostCentres
     10: End If
-    11: Set: TSChunkFrom: ##TSFromDate
-    12: Set: TSChunkTo: ##TSToDate
-    13: Walk Collection: TS Col CostCentres
-    14: Set: TSAltCostCentres: if $AlterID > ##TSAltCostCentres then $AlterID else ##TSAltCostCentres
-    15: Set Target
-    16: Set Value: TSSynced: Yes
-    17: Set Value: TSSyncedOn: $$MachineDate
-    18: Save Target
-    19: End Walk
-    20: Set: TSLogCostCentres: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | " + $$String:($$NumItems:TS Col CostCentres) + " records sent"
+
+[Function: TS After CostCentres]
+    Variable: vStatus: Number
+    00: Set: vStatus: 0
+    01: Walk Collection: Parameter Collection
+    02: Set: vStatus: $Status
+    03: End Walk
+    04: If: ##vStatus = 1
+    05: Walk Collection: TS Col CostCentres
+    06: Set: TSAltCostCentres: if $AlterID > ##TSAltCostCentres then $AlterID else ##TSAltCostCentres
+    07: Set Target
+    08: Set Value: TSSynced: Yes
+    09: Set Value: TSSyncedOn: $$MachineDate
+    10: Alter Target
+    11: End Walk
+    12: Set: TSLogCostCentres: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | OK"
+    13: If: NOT ##TSQuiet
+    14: Msg Box: "Push CostCentres": "Success"
+    15: End If
+    16: Else
+    17: Set: TSLogCostCentres: $$String:$$MachineDate + " " + $$String:$$MachineTime + " | FAILED"
+    18: If: NOT ##TSQuiet
+    19: Msg Box: "Push CostCentres": "Failed - backend did not return STATUS 1"
+    20: End If
+    21: End If
 
 [Collection: TS Col StockSummary]
     Type: Stock Item

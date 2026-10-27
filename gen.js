@@ -95,7 +95,8 @@ function genTDL(o){
   else P('    Fields: TS F Name, TS F Parent, TS F GUID, TS F MasterID, TS F AlterID'+(udf?', TS F Synced':''),'');
  };
  // ---------- collections + functions per entity
- const post=(urlSuffix,rep,quiet)=>quiet?'HTTP Post: @@TSBaseURL + "/'+urlSuffix+'" + @@TSAuthQS: '+enc+': '+rep:'HTTP Post: @@TSBaseURL + "/'+urlSuffix+'" + @@TSAuthQS: '+enc+': '+rep+': TS Resp Err: TS Resp Ok';
+ const IDM={};ALL.forEach(e=>IDM[e.toLowerCase()]=e);
+ const post=(urlSuffix,rep,quiet)=>((inc||udf)&&IDM[urlSuffix])?'HTTP Request: @@TSBaseURL + "/'+urlSuffix+'" + @@TSAuthQS: POST: XML: ASCII: '+rep+': TS After '+IDM[urlSuffix]:quiet?'HTTP Post: @@TSBaseURL + "/'+urlSuffix+'" + @@TSAuthQS: '+enc+': '+rep:'HTTP Post: @@TSBaseURL + "/'+urlSuffix+'" + @@TSAuthQS: '+enc+': '+rep+': TS Resp Err: TS Resp Ok';
  const stamp='$$String:$$MachineDate + " " + $$String:$$MachineTime';
  const fn=(e,col,rep,isV)=>{
   const id=e,suf=e.toLowerCase();let n=0;const S=s=>P('    '+String(n++).padStart(2,'0')+': '+s);
@@ -107,10 +108,15 @@ function genTDL(o){
    S('If: ##TSQuiet');S(post(suf,rep,1));S('Else');S(post(suf,rep,0));S('End If');
    S('Set: TSChunkFrom: ##TSChunkTo + 1');S('End While');
   } else {S('Set: TSChunkFrom: '+fromE);S('Set: TSChunkTo: '+toE);S('If: ##TSQuiet');S(post(suf,rep,1));S('Else');S(post(suf,rep,0));S('End If');}
-  if(inc||udf){S('Set: TSChunkFrom: '+fromE);S('Set: TSChunkTo: '+toE);S('Walk Collection: '+col);
-   if(inc)S('Set: TSAlt'+id+': if $AlterID > ##TSAlt'+id+' then $AlterID else ##TSAlt'+id);
-   if(udf){S('Set Target');S('Set Value: TSSynced: Yes');S('Set Value: TSSyncedOn: $$MachineDate');S('Save Target');}
-   S('End Walk');}
+  P('');
+  if(inc||udf){ // mark synced / advance AlterID ONLY when backend replied STATUS=1 (HTTP Request post-function)
+   P('[Function: TS After '+id+']','    Variable: vStatus: Number','    00: Set: vStatus: 0','    01: Walk Collection: Parameter Collection','    02: Set: vStatus: $Status','    03: End Walk','    04: If: ##vStatus = 1','    05: Walk Collection: '+col);
+   let m=6;const T=s=>P('    '+String(m++).padStart(2,'0')+': '+s);
+   if(inc)T('Set: TSAlt'+id+': if $AlterID > ##TSAlt'+id+' then $AlterID else ##TSAlt'+id);
+   if(udf){T('Set Target');T('Set Value: TSSynced: Yes');T('Set Value: TSSyncedOn: $$MachineDate');T('Alter Target');}
+   T('End Walk');if(o.log)T('Set: TSLog'+id+': '+stamp+' + " | OK"');T('If: NOT ##TSQuiet');T('Msg Box: "Push '+id+'": "Success"');T('End If');
+   T('Else');if(o.log)T('Set: TSLog'+id+': '+stamp+' + " | FAILED"');T('If: NOT ##TSQuiet');T('Msg Box: "Push '+id+'": "Failed - backend did not return STATUS 1"');T('End If');T('End If');P('');
+   return;}
   if(o.log)S('Set: TSLog'+id+': '+stamp+' + " | " + $$String:($$NumItems:'+col+') + " records sent"');
   P('');
  };
