@@ -44,7 +44,7 @@ function genTDL(o){
  let f='"'+q(o.url)+'"';const rep=(t,x)=>{f=f.split(t).join('" + '+x+' + "')};
  rep('{company}','##TSCompanyCode');rep('{companyname}','##SVCurrentCompany');
  rep('{fromdate}','$$String:##TSChunkFrom:UniversalDate');rep('{todate}','$$String:##TSChunkTo:UniversalDate');
- f=f.replace(/ \+ ""/g,'').replace(/"" \+ /g,'');
+ f=f.replace(/ \+ ""/g,'').replace(/"" \+ /g,'');if(!/[{]/.test(o.url))f='##TSApiURL  ;; editable in Configuration screen';
  P('[System: Formula]','    TSBaseURL: '+f);
  const sep=o.url.includes('?')?'&':'?';
  P('    TSAuthQS: '+(o.auth==='query'?'"'+sep+'apikey=" + ##TSApiKey':'""'));
@@ -199,7 +199,7 @@ function genTDL(o){
  return L.join('\r\n')+'\r\n';
 }
 function validateTDL(t){
- const err=[],seen={};const known=/^(Add|Title|Key Item|Item|Type|Persistent|Form|Variable|Part|Width|Lines?|Local|Fields?|Use|Max|Set As|Modifies|Fetch|Filter|Export|Export Header|JSONTag|XMLTag|Repeat|Scroll|Full Width|Remote URL|XMLObjectPath|Explode|\d\d|TS[\w ]*|On)$/i;
+ const err=[],seen={};const known=/^(Add|Title|Key Item|Item|Type|Persistent|Form|Variable|Part|Width|Lines?|Local|Fields?|Use|Max|Set As|Modifies|Fetch|Filter|Export|Export Header|JSONTag|XMLTag|Repeat|Scroll|Full Width|Remote URL|XMLObjectPath|Explode|\d+|TS[\w ]*|On|Local Formula)$/i;
  t.split(/\r?\n/).forEach((l,i)=>{let s=l.replace(/;;.*$/,'').trim();if(!s)return;
   if(s.startsWith('[')){if(!/^\[[#!]?[A-Za-z ]+:[^\[\]]+\]$/.test(s))err.push('L'+(i+1)+': bad header');
    else if(!s.startsWith('[#')&&!/^\[System/.test(s)){if(seen[s])err.push('L'+(i+1)+': duplicate '+s);seen[s]=1;}return;}

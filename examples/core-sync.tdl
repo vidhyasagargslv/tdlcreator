@@ -1,0 +1,2192 @@
+;; ===== TDL Maker v0.3 - CORE SYNC - generated 2026-10-27 =====
+;; Push: Groups, Units, Godowns, StockGroups, Ledgers, StockItems, ClosingStock, SalesOrders, PurchaseOrders
+;; Pull: Groups, Units, Godowns, StockGroups, Ledgers, StockItems, SalesOrders, PurchaseOrders
+;; Incremental push (AlterID high-water mark, advanced only on STATUS=1): Yes | Auth: header | Gate: none
+;; Base URL: http://192.168.1.10:8787
+;; Backend contract: see README.md / TESTING.md. Success reply = <ENVELOPE><STATUS>1</STATUS></ENVELOPE>
+;; Load via F1 > TDL & Add-On > Manage Local TDLs.  NOT YET VERIFIED ON A REAL TALLYPRIME - follow TESTING.md.
+
+[#Menu: Gateway of Tally]
+    Add: Key Item: At End: Sync: Y: Menu: TSC Main
+
+[Menu: TSC Main]
+    Title: "Sync"
+    Key Item: Configuration: C: Display: TSC Config
+    Key Item: Date Range: D: Display: TSC Dates
+    Key Item: Push to server: U: Menu: TSC Push Menu
+    Key Item: Pull from server: L: Menu: TSC Pull Menu
+    Key Item: Sync Log: Y: Display: TSC Log
+    Item: Blank
+    Key Item: @@locQuit: Q: Menu Quit
+
+[Menu: TSC Push Menu]
+    Title: "Push to server"
+    Key Item: Push Groups: 1: Call: TSC Push Groups
+    Key Item: Push Units: 2: Call: TSC Push Units
+    Key Item: Push Godowns: 3: Call: TSC Push Godowns
+    Key Item: Push Stock Groups: 4: Call: TSC Push StockGroups
+    Key Item: Push Ledgers / Parties: 5: Call: TSC Push Ledgers
+    Key Item: Push Stock Items: 6: Call: TSC Push StockItems
+    Key Item: Push Closing Stock: 7: Call: TSC Push ClosingStock
+    Key Item: Push Sales Orders: 8: Call: TSC Push SalesOrders
+    Key Item: Push Purchase Orders: 9: Call: TSC Push PurchaseOrders
+    Key Item: Push ALL (dependency order): P: Call: TSC Push All
+    Key Item: Reset incremental marks (next push = full): R: Call: TSC Reset Marks
+
+[Menu: TSC Pull Menu]
+    Title: "Pull from server"
+    Key Item: Pull Groups: 1: Call: TSC Pull Groups
+    Key Item: Pull Units: 2: Call: TSC Pull Units
+    Key Item: Pull Godowns: 3: Call: TSC Pull Godowns
+    Key Item: Pull Stock Groups: 4: Call: TSC Pull StockGroups
+    Key Item: Pull Ledgers / Parties: 5: Call: TSC Pull Ledgers
+    Key Item: Pull Stock Items: 6: Call: TSC Pull StockItems
+    Key Item: Pull Sales Orders: 7: Call: TSC Pull SalesOrders
+    Key Item: Pull Purchase Orders: 8: Call: TSC Pull PurchaseOrders
+    Key Item: Pull ALL (dependency order): P: Call: TSC Pull All
+
+[Variable: TSApiURL]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSApiKey]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCompanyCode]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSGateCompany]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSGateGSTIN]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSBasicAuth]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSFromDate]
+    Type: Date
+    Persistent: Yes
+
+[Variable: TSToDate]
+    Type: Date
+    Persistent: Yes
+
+[Variable: TSCAltGroups]
+    Type: Number
+    Persistent: Yes
+
+[Variable: TSCLogPushGroups]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCAltUnits]
+    Type: Number
+    Persistent: Yes
+
+[Variable: TSCLogPushUnits]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCAltGodowns]
+    Type: Number
+    Persistent: Yes
+
+[Variable: TSCLogPushGodowns]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCAltStockGroups]
+    Type: Number
+    Persistent: Yes
+
+[Variable: TSCLogPushStockGroups]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCAltLedgers]
+    Type: Number
+    Persistent: Yes
+
+[Variable: TSCLogPushLedgers]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCAltStockItems]
+    Type: Number
+    Persistent: Yes
+
+[Variable: TSCLogPushStockItems]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCAltClosingStock]
+    Type: Number
+    Persistent: Yes
+
+[Variable: TSCLogPushClosingStock]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCAltSalesOrders]
+    Type: Number
+    Persistent: Yes
+
+[Variable: TSCLogPushSalesOrders]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCAltPurchaseOrders]
+    Type: Number
+    Persistent: Yes
+
+[Variable: TSCLogPushPurchaseOrders]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCLogPullGroups]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCLogPullUnits]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCLogPullGodowns]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCLogPullStockGroups]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCLogPullLedgers]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCLogPullStockItems]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCLogPullSalesOrders]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCLogPullPurchaseOrders]
+    Type: String
+    Persistent: Yes
+
+[Variable: TSCMaxAlt]
+    Type: Number
+    Persistent: No
+
+[Variable: TSCQuiet]
+    Type: Logical
+    Persistent: No
+
+[Variable: TSCPullNo]
+    Type: String
+    Persistent: No
+
+[Variable: TSCCreated]
+    Type: Number
+    Persistent: No
+
+[Variable: TSCAltered]
+    Type: Number
+    Persistent: No
+
+[Variable: TSCSkipped]
+    Type: Number
+    Persistent: No
+
+[Variable: TSCErrors]
+    Type: Number
+    Persistent: No
+
+[System: Variable]
+    TSApiURL: "http://192.168.1.10:8787"
+    TSApiKey: "YOUR_API_KEY"
+    TSCompanyCode: "ACME"
+    TSGateCompany: ""
+    TSGateGSTIN: ""
+    TSBasicAuth: ""
+    TSFromDate: $$MonthStart:##SVCurrentDate
+    TSToDate: $$MonthEnd:##SVCurrentDate
+    TSCAltGroups: 0
+    TSCLogPushGroups: "never"
+    TSCAltUnits: 0
+    TSCLogPushUnits: "never"
+    TSCAltGodowns: 0
+    TSCLogPushGodowns: "never"
+    TSCAltStockGroups: 0
+    TSCLogPushStockGroups: "never"
+    TSCAltLedgers: 0
+    TSCLogPushLedgers: "never"
+    TSCAltStockItems: 0
+    TSCLogPushStockItems: "never"
+    TSCAltClosingStock: 0
+    TSCLogPushClosingStock: "never"
+    TSCAltSalesOrders: 0
+    TSCLogPushSalesOrders: "never"
+    TSCAltPurchaseOrders: 0
+    TSCLogPushPurchaseOrders: "never"
+    TSCLogPullGroups: "never"
+    TSCLogPullUnits: "never"
+    TSCLogPullGodowns: "never"
+    TSCLogPullStockGroups: "never"
+    TSCLogPullLedgers: "never"
+    TSCLogPullStockItems: "never"
+    TSCLogPullSalesOrders: "never"
+    TSCLogPullPurchaseOrders: "never"
+    TSCMaxAlt: 0
+    TSCQuiet: No
+    TSCPullNo: ""
+    TSCCreated: 0
+    TSCAltered: 0
+    TSCSkipped: 0
+    TSCErrors: 0
+
+[System: Formula]
+    TSCBase: ##TSApiURL  ;; editable in Configuration screen
+    TSCAuthQS: ""
+    TSCGateOK: Yes
+    TSCStamp: $$String:$$MachineDate + " " + $$String:$$MachineTime
+
+[Report: TSC Config]
+    Form: TSC Config
+    Title: "Sync Configuration"
+    Variable: TSApiURL
+    Variable: TSApiKey
+    Variable: TSCompanyCode
+
+[Form: TSC Config]
+    Part: TSC Config
+    Width: 70% Screen
+
+[Part: TSC Config]
+    Lines: TSC Config TSApiURL, TSC Config TSApiKey, TSC Config TSCompanyCode
+
+[Line: TSC Config TSApiURL]
+    Fields: Medium Prompt, TSC Config TSApiURL Fld
+    Local: Field: Medium Prompt: Info: "Base URL"
+
+[Field: TSC Config TSApiURL Fld]
+    Use: Name Field
+    Max: 250
+    Set As: ##TSApiURL
+    Modifies: TSApiURL: Yes
+
+[Line: TSC Config TSApiKey]
+    Fields: Medium Prompt, TSC Config TSApiKey Fld
+    Local: Field: Medium Prompt: Info: "API Key"
+
+[Field: TSC Config TSApiKey Fld]
+    Use: Name Field
+    Max: 250
+    Set As: ##TSApiKey
+    Modifies: TSApiKey: Yes
+
+[Line: TSC Config TSCompanyCode]
+    Fields: Medium Prompt, TSC Config TSCompanyCode Fld
+    Local: Field: Medium Prompt: Info: "Company Code"
+
+[Field: TSC Config TSCompanyCode Fld]
+    Use: Name Field
+    Max: 250
+    Set As: ##TSCompanyCode
+    Modifies: TSCompanyCode: Yes
+
+[Report: TSC Dates]
+    Form: TSC Dates
+    Title: "Sync Date Range"
+    Variable: TSFromDate
+    Variable: TSToDate
+
+[Form: TSC Dates]
+    Part: TSC Dates
+    Width: 70% Screen
+
+[Part: TSC Dates]
+    Lines: TSC Dates TSFromDate, TSC Dates TSToDate
+
+[Line: TSC Dates TSFromDate]
+    Fields: Medium Prompt, TSC Dates TSFromDate Fld
+    Local: Field: Medium Prompt: Info: "From"
+
+[Field: TSC Dates TSFromDate Fld]
+    Use: Uni Date Field
+    Set As: ##TSFromDate
+    Modifies: TSFromDate: Yes
+
+[Line: TSC Dates TSToDate]
+    Fields: Medium Prompt, TSC Dates TSToDate Fld
+    Local: Field: Medium Prompt: Info: "To"
+
+[Field: TSC Dates TSToDate Fld]
+    Use: Uni Date Field
+    Set As: ##TSToDate
+    Modifies: TSToDate: Yes
+
+[Collection: TSC Col Groups]
+    Type: Group
+    Fetch: *.*
+    Filter: TSC Flt Alt Groups
+
+[System: Formula]
+    TSC Flt Alt Groups: $AlterID > ##TSCAltGroups
+
+[Report: TSC Req Groups]
+    Form: TSC Req Groups
+    Export: Yes
+    Export Header: "Content-Type: application/xml"
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Form: TSC Req Groups]
+    Part: TSC Req Groups Hdr, TSC Req Groups Body
+    XMLTag: "ENVELOPE"
+
+[Part: TSC Req Groups Hdr]
+    Line: TSC Req Groups Hdr
+
+[Line: TSC Req Groups Hdr]
+    XMLTag: "HEADER"
+    Fields: TSC H ENTITY, TSC H COMPANY, TSC H COMPANYNAME, TSC H FROMDATE, TSC H TODATE, TSC H COUNT
+
+[Part: TSC Req Groups Body]
+    Line: TSC Req Groups Row
+    Repeat: TSC Req Groups Row: TSC Col Groups
+    Scroll: Vertical
+
+[Line: TSC Req Groups Row]
+    XMLTag: "GROUP"
+    Fields: TSC Groups NAME, TSC Groups PARENT, TSC Groups ISREVENUE, TSC Groups GUID, TSC Groups MASTERID, TSC Groups ALTERID
+
+[Function: TSC Push Groups]
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Push blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCMaxAlt: ##TSCAltGroups
+    005: Walk Collection: TSC Col Groups
+    006: Set: TSCMaxAlt: if $AlterID > ##TSCMaxAlt then $AlterID else ##TSCMaxAlt
+    007: End Walk
+    008: HTTP Request: @@TSCBase + "/push/groups" + @@TSCAuthQS: POST: XML: ASCII: TSC Req Groups: TSC After Groups
+
+[Function: TSC After Groups]
+    Variable: vStatus: Number
+    000: Set: vStatus: 0
+    001: Walk Collection: Parameter Collection
+    002: Set: vStatus: $Status
+    003: End Walk
+    004: If: ##vStatus = 1
+    005: Set: TSCAltGroups: ##TSCMaxAlt
+    006: Set: TSCLogPushGroups: @@TSCStamp + " | OK"
+    007: If: NOT ##TSCQuiet
+    008: Msg Box: "Push Groups": "Success"
+    009: End If
+    010: Else
+    011: Set: TSCLogPushGroups: @@TSCStamp + " | FAILED (STATUS not 1)"
+    012: If: NOT ##TSCQuiet
+    013: Msg Box: "Push Groups": "Failed - nothing marked as synced"
+    014: End If
+    015: End If
+
+[Collection: TSC Col Units]
+    Type: Unit
+    Fetch: *.*
+    Filter: TSC Flt Alt Units
+
+[System: Formula]
+    TSC Flt Alt Units: $AlterID > ##TSCAltUnits
+
+[Report: TSC Req Units]
+    Form: TSC Req Units
+    Export: Yes
+    Export Header: "Content-Type: application/xml"
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Form: TSC Req Units]
+    Part: TSC Req Units Hdr, TSC Req Units Body
+    XMLTag: "ENVELOPE"
+
+[Part: TSC Req Units Hdr]
+    Line: TSC Req Units Hdr
+
+[Line: TSC Req Units Hdr]
+    XMLTag: "HEADER"
+    Fields: TSC H ENTITY, TSC H COMPANY, TSC H COMPANYNAME, TSC H FROMDATE, TSC H TODATE, TSC H COUNT
+
+[Part: TSC Req Units Body]
+    Line: TSC Req Units Row
+    Repeat: TSC Req Units Row: TSC Col Units
+    Scroll: Vertical
+
+[Line: TSC Req Units Row]
+    XMLTag: "UNIT"
+    Fields: TSC Units NAME, TSC Units FORMALNAME, TSC Units DECIMALPLACES, TSC Units ISSIMPLEUNIT, TSC Units GUID, TSC Units MASTERID, TSC Units ALTERID
+
+[Function: TSC Push Units]
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Push blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCMaxAlt: ##TSCAltUnits
+    005: Walk Collection: TSC Col Units
+    006: Set: TSCMaxAlt: if $AlterID > ##TSCMaxAlt then $AlterID else ##TSCMaxAlt
+    007: End Walk
+    008: HTTP Request: @@TSCBase + "/push/units" + @@TSCAuthQS: POST: XML: ASCII: TSC Req Units: TSC After Units
+
+[Function: TSC After Units]
+    Variable: vStatus: Number
+    000: Set: vStatus: 0
+    001: Walk Collection: Parameter Collection
+    002: Set: vStatus: $Status
+    003: End Walk
+    004: If: ##vStatus = 1
+    005: Set: TSCAltUnits: ##TSCMaxAlt
+    006: Set: TSCLogPushUnits: @@TSCStamp + " | OK"
+    007: If: NOT ##TSCQuiet
+    008: Msg Box: "Push Units": "Success"
+    009: End If
+    010: Else
+    011: Set: TSCLogPushUnits: @@TSCStamp + " | FAILED (STATUS not 1)"
+    012: If: NOT ##TSCQuiet
+    013: Msg Box: "Push Units": "Failed - nothing marked as synced"
+    014: End If
+    015: End If
+
+[Collection: TSC Col Godowns]
+    Type: Godown
+    Fetch: *.*
+    Filter: TSC Flt Alt Godowns
+
+[System: Formula]
+    TSC Flt Alt Godowns: $AlterID > ##TSCAltGodowns
+
+[Report: TSC Req Godowns]
+    Form: TSC Req Godowns
+    Export: Yes
+    Export Header: "Content-Type: application/xml"
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Form: TSC Req Godowns]
+    Part: TSC Req Godowns Hdr, TSC Req Godowns Body
+    XMLTag: "ENVELOPE"
+
+[Part: TSC Req Godowns Hdr]
+    Line: TSC Req Godowns Hdr
+
+[Line: TSC Req Godowns Hdr]
+    XMLTag: "HEADER"
+    Fields: TSC H ENTITY, TSC H COMPANY, TSC H COMPANYNAME, TSC H FROMDATE, TSC H TODATE, TSC H COUNT
+
+[Part: TSC Req Godowns Body]
+    Line: TSC Req Godowns Row
+    Repeat: TSC Req Godowns Row: TSC Col Godowns
+    Scroll: Vertical
+
+[Line: TSC Req Godowns Row]
+    XMLTag: "GODOWN"
+    Fields: TSC Godowns NAME, TSC Godowns PARENT, TSC Godowns GUID, TSC Godowns MASTERID, TSC Godowns ALTERID
+
+[Function: TSC Push Godowns]
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Push blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCMaxAlt: ##TSCAltGodowns
+    005: Walk Collection: TSC Col Godowns
+    006: Set: TSCMaxAlt: if $AlterID > ##TSCMaxAlt then $AlterID else ##TSCMaxAlt
+    007: End Walk
+    008: HTTP Request: @@TSCBase + "/push/godowns" + @@TSCAuthQS: POST: XML: ASCII: TSC Req Godowns: TSC After Godowns
+
+[Function: TSC After Godowns]
+    Variable: vStatus: Number
+    000: Set: vStatus: 0
+    001: Walk Collection: Parameter Collection
+    002: Set: vStatus: $Status
+    003: End Walk
+    004: If: ##vStatus = 1
+    005: Set: TSCAltGodowns: ##TSCMaxAlt
+    006: Set: TSCLogPushGodowns: @@TSCStamp + " | OK"
+    007: If: NOT ##TSCQuiet
+    008: Msg Box: "Push Godowns": "Success"
+    009: End If
+    010: Else
+    011: Set: TSCLogPushGodowns: @@TSCStamp + " | FAILED (STATUS not 1)"
+    012: If: NOT ##TSCQuiet
+    013: Msg Box: "Push Godowns": "Failed - nothing marked as synced"
+    014: End If
+    015: End If
+
+[Collection: TSC Col StockGroups]
+    Type: Stock Group
+    Fetch: *.*
+    Filter: TSC Flt Alt StockGroups
+
+[System: Formula]
+    TSC Flt Alt StockGroups: $AlterID > ##TSCAltStockGroups
+
+[Report: TSC Req StockGroups]
+    Form: TSC Req StockGroups
+    Export: Yes
+    Export Header: "Content-Type: application/xml"
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Form: TSC Req StockGroups]
+    Part: TSC Req StockGroups Hdr, TSC Req StockGroups Body
+    XMLTag: "ENVELOPE"
+
+[Part: TSC Req StockGroups Hdr]
+    Line: TSC Req StockGroups Hdr
+
+[Line: TSC Req StockGroups Hdr]
+    XMLTag: "HEADER"
+    Fields: TSC H ENTITY, TSC H COMPANY, TSC H COMPANYNAME, TSC H FROMDATE, TSC H TODATE, TSC H COUNT
+
+[Part: TSC Req StockGroups Body]
+    Line: TSC Req StockGroups Row
+    Repeat: TSC Req StockGroups Row: TSC Col StockGroups
+    Scroll: Vertical
+
+[Line: TSC Req StockGroups Row]
+    XMLTag: "STOCKGROUP"
+    Fields: TSC StockGroups NAME, TSC StockGroups PARENT, TSC StockGroups GUID, TSC StockGroups MASTERID, TSC StockGroups ALTERID
+
+[Function: TSC Push StockGroups]
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Push blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCMaxAlt: ##TSCAltStockGroups
+    005: Walk Collection: TSC Col StockGroups
+    006: Set: TSCMaxAlt: if $AlterID > ##TSCMaxAlt then $AlterID else ##TSCMaxAlt
+    007: End Walk
+    008: HTTP Request: @@TSCBase + "/push/stockgroups" + @@TSCAuthQS: POST: XML: ASCII: TSC Req StockGroups: TSC After StockGroups
+
+[Function: TSC After StockGroups]
+    Variable: vStatus: Number
+    000: Set: vStatus: 0
+    001: Walk Collection: Parameter Collection
+    002: Set: vStatus: $Status
+    003: End Walk
+    004: If: ##vStatus = 1
+    005: Set: TSCAltStockGroups: ##TSCMaxAlt
+    006: Set: TSCLogPushStockGroups: @@TSCStamp + " | OK"
+    007: If: NOT ##TSCQuiet
+    008: Msg Box: "Push Stock Groups": "Success"
+    009: End If
+    010: Else
+    011: Set: TSCLogPushStockGroups: @@TSCStamp + " | FAILED (STATUS not 1)"
+    012: If: NOT ##TSCQuiet
+    013: Msg Box: "Push Stock Groups": "Failed - nothing marked as synced"
+    014: End If
+    015: End If
+
+[Collection: TSC Col Ledgers]
+    Type: Ledger
+    Fetch: *.*
+    Filter: TSC Flt Alt Ledgers
+
+[System: Formula]
+    TSC Flt Alt Ledgers: $AlterID > ##TSCAltLedgers
+
+[Report: TSC Req Ledgers]
+    Form: TSC Req Ledgers
+    Export: Yes
+    Export Header: "Content-Type: application/xml"
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Form: TSC Req Ledgers]
+    Part: TSC Req Ledgers Hdr, TSC Req Ledgers Body
+    XMLTag: "ENVELOPE"
+
+[Part: TSC Req Ledgers Hdr]
+    Line: TSC Req Ledgers Hdr
+
+[Line: TSC Req Ledgers Hdr]
+    XMLTag: "HEADER"
+    Fields: TSC H ENTITY, TSC H COMPANY, TSC H COMPANYNAME, TSC H FROMDATE, TSC H TODATE, TSC H COUNT
+
+[Part: TSC Req Ledgers Body]
+    Line: TSC Req Ledgers Row
+    Repeat: TSC Req Ledgers Row: TSC Col Ledgers
+    Scroll: Vertical
+
+[Line: TSC Req Ledgers Row]
+    XMLTag: "LEDGER"
+    Fields: TSC Ledgers NAME, TSC Ledgers PARENT, TSC Ledgers GSTIN, TSC Ledgers STATE, TSC Ledgers COUNTRY, TSC Ledgers PINCODE, TSC Ledgers EMAIL, TSC Ledgers MOBILE, TSC Ledgers CONTACT, TSC Ledgers ADDRESS, TSC Ledgers OPENINGBALANCE, TSC Ledgers CLOSINGBALANCE, TSC Ledgers GUID, TSC Ledgers MASTERID, TSC Ledgers ALTERID
+
+[Function: TSC Push Ledgers]
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Push blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCMaxAlt: ##TSCAltLedgers
+    005: Walk Collection: TSC Col Ledgers
+    006: Set: TSCMaxAlt: if $AlterID > ##TSCMaxAlt then $AlterID else ##TSCMaxAlt
+    007: End Walk
+    008: HTTP Request: @@TSCBase + "/push/ledgers" + @@TSCAuthQS: POST: XML: ASCII: TSC Req Ledgers: TSC After Ledgers
+
+[Function: TSC After Ledgers]
+    Variable: vStatus: Number
+    000: Set: vStatus: 0
+    001: Walk Collection: Parameter Collection
+    002: Set: vStatus: $Status
+    003: End Walk
+    004: If: ##vStatus = 1
+    005: Set: TSCAltLedgers: ##TSCMaxAlt
+    006: Set: TSCLogPushLedgers: @@TSCStamp + " | OK"
+    007: If: NOT ##TSCQuiet
+    008: Msg Box: "Push Ledgers / Parties": "Success"
+    009: End If
+    010: Else
+    011: Set: TSCLogPushLedgers: @@TSCStamp + " | FAILED (STATUS not 1)"
+    012: If: NOT ##TSCQuiet
+    013: Msg Box: "Push Ledgers / Parties": "Failed - nothing marked as synced"
+    014: End If
+    015: End If
+
+[Collection: TSC Col StockItems]
+    Type: Stock Item
+    Fetch: *.*
+    Filter: TSC Flt Alt StockItems
+
+[System: Formula]
+    TSC Flt Alt StockItems: $AlterID > ##TSCAltStockItems
+
+[Report: TSC Req StockItems]
+    Form: TSC Req StockItems
+    Export: Yes
+    Export Header: "Content-Type: application/xml"
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Form: TSC Req StockItems]
+    Part: TSC Req StockItems Hdr, TSC Req StockItems Body
+    XMLTag: "ENVELOPE"
+
+[Part: TSC Req StockItems Hdr]
+    Line: TSC Req StockItems Hdr
+
+[Line: TSC Req StockItems Hdr]
+    XMLTag: "HEADER"
+    Fields: TSC H ENTITY, TSC H COMPANY, TSC H COMPANYNAME, TSC H FROMDATE, TSC H TODATE, TSC H COUNT
+
+[Part: TSC Req StockItems Body]
+    Line: TSC Req StockItems Row
+    Repeat: TSC Req StockItems Row: TSC Col StockItems
+    Scroll: Vertical
+
+[Line: TSC Req StockItems Row]
+    XMLTag: "STOCKITEM"
+    Fields: TSC StockItems NAME, TSC StockItems PARENT, TSC StockItems CATEGORY, TSC StockItems BASEUNITS, TSC StockItems GSTAPPLICABLE, TSC StockItems HSNCODE, TSC StockItems OPENINGQTY, TSC StockItems OPENINGRATE, TSC StockItems OPENINGVALUE, TSC StockItems CLOSINGQTY, TSC StockItems CLOSINGVALUE, TSC StockItems GUID, TSC StockItems MASTERID, TSC StockItems ALTERID
+
+[Function: TSC Push StockItems]
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Push blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCMaxAlt: ##TSCAltStockItems
+    005: Walk Collection: TSC Col StockItems
+    006: Set: TSCMaxAlt: if $AlterID > ##TSCMaxAlt then $AlterID else ##TSCMaxAlt
+    007: End Walk
+    008: HTTP Request: @@TSCBase + "/push/stockitems" + @@TSCAuthQS: POST: XML: ASCII: TSC Req StockItems: TSC After StockItems
+
+[Function: TSC After StockItems]
+    Variable: vStatus: Number
+    000: Set: vStatus: 0
+    001: Walk Collection: Parameter Collection
+    002: Set: vStatus: $Status
+    003: End Walk
+    004: If: ##vStatus = 1
+    005: Set: TSCAltStockItems: ##TSCMaxAlt
+    006: Set: TSCLogPushStockItems: @@TSCStamp + " | OK"
+    007: If: NOT ##TSCQuiet
+    008: Msg Box: "Push Stock Items": "Success"
+    009: End If
+    010: Else
+    011: Set: TSCLogPushStockItems: @@TSCStamp + " | FAILED (STATUS not 1)"
+    012: If: NOT ##TSCQuiet
+    013: Msg Box: "Push Stock Items": "Failed - nothing marked as synced"
+    014: End If
+    015: End If
+
+[Collection: TSC Col ClosingStock]
+    Type: Stock Item
+    Fetch: *.*
+
+[System: Formula]
+
+[Report: TSC Req ClosingStock]
+    Form: TSC Req ClosingStock
+    Export: Yes
+    Export Header: "Content-Type: application/xml"
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Form: TSC Req ClosingStock]
+    Part: TSC Req ClosingStock Hdr, TSC Req ClosingStock Body
+    XMLTag: "ENVELOPE"
+
+[Part: TSC Req ClosingStock Hdr]
+    Line: TSC Req ClosingStock Hdr
+
+[Line: TSC Req ClosingStock Hdr]
+    XMLTag: "HEADER"
+    Fields: TSC H ENTITY, TSC H COMPANY, TSC H COMPANYNAME, TSC H FROMDATE, TSC H TODATE, TSC H COUNT
+
+[Part: TSC Req ClosingStock Body]
+    Line: TSC Req ClosingStock Row
+    Repeat: TSC Req ClosingStock Row: TSC Col ClosingStock
+    Scroll: Vertical
+
+[Line: TSC Req ClosingStock Row]
+    XMLTag: "STOCKITEM"
+    Fields: TSC ClosingStock NAME, TSC ClosingStock PARENT, TSC ClosingStock BASEUNITS, TSC ClosingStock CLOSINGQTY, TSC ClosingStock CLOSINGRATE, TSC ClosingStock CLOSINGVALUE
+
+[Function: TSC Push ClosingStock]
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Push blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: HTTP Request: @@TSCBase + "/push/closingstock" + @@TSCAuthQS: POST: XML: ASCII: TSC Req ClosingStock: TSC After ClosingStock
+
+[Function: TSC After ClosingStock]
+    Variable: vStatus: Number
+    000: Set: vStatus: 0
+    001: Walk Collection: Parameter Collection
+    002: Set: vStatus: $Status
+    003: End Walk
+    004: If: ##vStatus = 1
+    005: Set: TSCLogPushClosingStock: @@TSCStamp + " | OK"
+    006: If: NOT ##TSCQuiet
+    007: Msg Box: "Push Closing Stock": "Success"
+    008: End If
+    009: Else
+    010: Set: TSCLogPushClosingStock: @@TSCStamp + " | FAILED (STATUS not 1)"
+    011: If: NOT ##TSCQuiet
+    012: Msg Box: "Push Closing Stock": "Failed - nothing marked as synced"
+    013: End If
+    014: End If
+
+[Collection: TSC Col SalesOrders]
+    Type: Voucher
+    Fetch: *.*
+    Filter: TSC Flt SalesOrders, TSC Flt Date, TSC Flt Alt SalesOrders
+
+[System: Formula]
+    TSC Flt SalesOrders: $VoucherTypeName = "Sales Order" OR $$IsSysNameEqual:SalesOrder:($Parent:VoucherType:$VoucherTypeName)  ;; covers custom types under Sales Order
+    TSC Flt Alt SalesOrders: $AlterID > ##TSCAltSalesOrders
+
+[Report: TSC Req SalesOrders]
+    Form: TSC Req SalesOrders
+    Export: Yes
+    Export Header: "Content-Type: application/xml"
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Form: TSC Req SalesOrders]
+    Part: TSC Req SalesOrders Hdr, TSC Req SalesOrders Body
+    XMLTag: "ENVELOPE"
+
+[Part: TSC Req SalesOrders Hdr]
+    Line: TSC Req SalesOrders Hdr
+
+[Line: TSC Req SalesOrders Hdr]
+    XMLTag: "HEADER"
+    Fields: TSC H ENTITY, TSC H COMPANY, TSC H COMPANYNAME, TSC H FROMDATE, TSC H TODATE, TSC H COUNT
+
+[Part: TSC Req SalesOrders Body]
+    Line: TSC Req SalesOrders Row
+    Repeat: TSC Req SalesOrders Row: TSC Col SalesOrders
+    Scroll: Vertical
+
+[Line: TSC Req SalesOrders Row]
+    XMLTag: "VOUCHER"
+    Fields: TSC V DATE, TSC V VOUCHERTYPE, TSC V VOUCHERNUMBER, TSC V REFERENCE, TSC V PARTYNAME, TSC V PARTYGSTIN, TSC V PLACEOFSUPPLY, TSC V NARRATION, TSC V TOTAL, TSC V GUID, TSC V MASTERID, TSC V ALTERID
+    Explode: TSC Inv Part: Yes
+    Explode: TSC Led Part: Yes
+
+[Function: TSC Push SalesOrders]
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Push blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCMaxAlt: ##TSCAltSalesOrders
+    005: Walk Collection: TSC Col SalesOrders
+    006: Set: TSCMaxAlt: if $AlterID > ##TSCMaxAlt then $AlterID else ##TSCMaxAlt
+    007: End Walk
+    008: HTTP Request: @@TSCBase + "/push/salesorders" + @@TSCAuthQS: POST: XML: ASCII: TSC Req SalesOrders: TSC After SalesOrders
+
+[Function: TSC After SalesOrders]
+    Variable: vStatus: Number
+    000: Set: vStatus: 0
+    001: Walk Collection: Parameter Collection
+    002: Set: vStatus: $Status
+    003: End Walk
+    004: If: ##vStatus = 1
+    005: Set: TSCAltSalesOrders: ##TSCMaxAlt
+    006: Set: TSCLogPushSalesOrders: @@TSCStamp + " | OK"
+    007: If: NOT ##TSCQuiet
+    008: Msg Box: "Push Sales Orders": "Success"
+    009: End If
+    010: Else
+    011: Set: TSCLogPushSalesOrders: @@TSCStamp + " | FAILED (STATUS not 1)"
+    012: If: NOT ##TSCQuiet
+    013: Msg Box: "Push Sales Orders": "Failed - nothing marked as synced"
+    014: End If
+    015: End If
+
+[Collection: TSC Col PurchaseOrders]
+    Type: Voucher
+    Fetch: *.*
+    Filter: TSC Flt PurchaseOrders, TSC Flt Date, TSC Flt Alt PurchaseOrders
+
+[System: Formula]
+    TSC Flt PurchaseOrders: $VoucherTypeName = "Purchase Order" OR $$IsSysNameEqual:PurchaseOrder:($Parent:VoucherType:$VoucherTypeName)  ;; covers custom types under Purchase Order
+    TSC Flt Alt PurchaseOrders: $AlterID > ##TSCAltPurchaseOrders
+
+[Report: TSC Req PurchaseOrders]
+    Form: TSC Req PurchaseOrders
+    Export: Yes
+    Export Header: "Content-Type: application/xml"
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Form: TSC Req PurchaseOrders]
+    Part: TSC Req PurchaseOrders Hdr, TSC Req PurchaseOrders Body
+    XMLTag: "ENVELOPE"
+
+[Part: TSC Req PurchaseOrders Hdr]
+    Line: TSC Req PurchaseOrders Hdr
+
+[Line: TSC Req PurchaseOrders Hdr]
+    XMLTag: "HEADER"
+    Fields: TSC H ENTITY, TSC H COMPANY, TSC H COMPANYNAME, TSC H FROMDATE, TSC H TODATE, TSC H COUNT
+
+[Part: TSC Req PurchaseOrders Body]
+    Line: TSC Req PurchaseOrders Row
+    Repeat: TSC Req PurchaseOrders Row: TSC Col PurchaseOrders
+    Scroll: Vertical
+
+[Line: TSC Req PurchaseOrders Row]
+    XMLTag: "VOUCHER"
+    Fields: TSC V DATE, TSC V VOUCHERTYPE, TSC V VOUCHERNUMBER, TSC V REFERENCE, TSC V PARTYNAME, TSC V PARTYGSTIN, TSC V PLACEOFSUPPLY, TSC V NARRATION, TSC V TOTAL, TSC V GUID, TSC V MASTERID, TSC V ALTERID
+    Explode: TSC Inv Part: Yes
+    Explode: TSC Led Part: Yes
+
+[Function: TSC Push PurchaseOrders]
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Push blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCMaxAlt: ##TSCAltPurchaseOrders
+    005: Walk Collection: TSC Col PurchaseOrders
+    006: Set: TSCMaxAlt: if $AlterID > ##TSCMaxAlt then $AlterID else ##TSCMaxAlt
+    007: End Walk
+    008: HTTP Request: @@TSCBase + "/push/purchaseorders" + @@TSCAuthQS: POST: XML: ASCII: TSC Req PurchaseOrders: TSC After PurchaseOrders
+
+[Function: TSC After PurchaseOrders]
+    Variable: vStatus: Number
+    000: Set: vStatus: 0
+    001: Walk Collection: Parameter Collection
+    002: Set: vStatus: $Status
+    003: End Walk
+    004: If: ##vStatus = 1
+    005: Set: TSCAltPurchaseOrders: ##TSCMaxAlt
+    006: Set: TSCLogPushPurchaseOrders: @@TSCStamp + " | OK"
+    007: If: NOT ##TSCQuiet
+    008: Msg Box: "Push Purchase Orders": "Success"
+    009: End If
+    010: Else
+    011: Set: TSCLogPushPurchaseOrders: @@TSCStamp + " | FAILED (STATUS not 1)"
+    012: If: NOT ##TSCQuiet
+    013: Msg Box: "Push Purchase Orders": "Failed - nothing marked as synced"
+    014: End If
+    015: End If
+
+[Part: TSC Inv Part]
+    Line: TSC Inv Line
+    Repeat: TSC Inv Line: AllInventoryEntries
+    Scroll: Vertical
+
+[Line: TSC Inv Line]
+    XMLTag: "INVENTORYENTRY"
+    Fields: TSC I STOCKITEM, TSC I QTY, TSC I ACTUALQTY, TSC I RATE, TSC I DISCOUNT, TSC I AMOUNT, TSC I GSTRATE
+    Explode: TSC Bat Part: Yes
+    Explode: TSC Acc Part: Yes
+
+[Part: TSC Bat Part]
+    Line: TSC Bat Line
+    Repeat: TSC Bat Line: BatchAllocations
+    Scroll: Vertical
+
+[Line: TSC Bat Line]
+    XMLTag: "BATCH"
+    Fields: TSC B GODOWN, TSC B BATCH, TSC B ORDERNO, TSC B DUEDATE, TSC B QTY, TSC B AMOUNT
+
+[Part: TSC Acc Part]
+    Line: TSC Acc Line
+    Repeat: TSC Acc Line: AccountingAllocations
+    Scroll: Vertical
+
+[Line: TSC Acc Line]
+    XMLTag: "ACCOUNTINGALLOCATION"
+    Fields: TSC A LEDGERNAME, TSC A AMOUNT
+
+[Part: TSC Led Part]
+    Line: TSC Led Line
+    Repeat: TSC Led Line: LedgerEntries
+    Scroll: Vertical
+
+[Line: TSC Led Line]
+    XMLTag: "LEDGERENTRY"
+    Fields: TSC L LEDGERNAME, TSC L AMOUNT, TSC L ISPARTY
+
+[System: Formula]
+    TSC Flt Date: $Date >= ##TSFromDate AND $Date <= ##TSToDate
+
+[Function: TSC Push All]
+    000: Set: TSCQuiet: Yes
+    001: Call: TSC Push Groups
+    002: Call: TSC Push Units
+    003: Call: TSC Push Godowns
+    004: Call: TSC Push StockGroups
+    005: Call: TSC Push Ledgers
+    006: Call: TSC Push StockItems
+    007: Call: TSC Push ClosingStock
+    008: Call: TSC Push SalesOrders
+    009: Call: TSC Push PurchaseOrders
+    010: Set: TSCQuiet: No
+    011: Display: TSC Log
+
+[Function: TSC Reset Marks]
+    000: Set: TSCAltGroups: 0
+    001: Set: TSCAltUnits: 0
+    002: Set: TSCAltGodowns: 0
+    003: Set: TSCAltStockGroups: 0
+    004: Set: TSCAltLedgers: 0
+    005: Set: TSCAltStockItems: 0
+    006: Set: TSCAltClosingStock: 0
+    007: Set: TSCAltSalesOrders: 0
+    008: Set: TSCAltPurchaseOrders: 0
+    009: Msg Box: "Reset": "Next push sends all records in range"
+
+[Collection: TSC Pull Col Groups]
+    Remote URL: @@TSCBase + "/pull/groups" + @@TSCAuthQS
+    XMLObjectPath: GROUP: 1: ENVELOPE
+    Fetch: NAME, PARENT
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Function: TSC Pull Groups]
+    Variable: vExists: Logical
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Pull blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCCreated: 0
+    005: Set: TSCAltered: 0
+    006: Set: TSCSkipped: 0
+    007: Set: TSCErrors: 0
+    008: Walk Collection: TSC Pull Col Groups
+    009: If: $$IsEmpty:$NAME
+    010: Set: TSCSkipped: ##TSCSkipped + 1
+    011: Continue
+    012: End If
+    013: Set: vExists: NOT $$IsEmpty:($Name:Group:$NAME)
+    014: New Object: Group: $NAME: Yes
+    015: Set Value: Name: $NAME
+    016: If: NOT $$IsEmpty:$PARENT
+    017: Set Value: Parent: $PARENT
+    018: End If
+    019: Save Target
+    020: If: $$LastResult
+    021: If: ##vExists
+    022: Set: TSCAltered: ##TSCAltered + 1
+    023: Else
+    024: Set: TSCCreated: ##TSCCreated + 1
+    025: End If
+    026: Else
+    027: Set: TSCErrors: ##TSCErrors + 1
+    028: End If
+    029: End Walk
+    030: Set: TSCLogPullGroups: @@TSCStamp + " | created " + $$String:##TSCCreated + ", altered " + $$String:##TSCAltered + ", skipped " + $$String:##TSCSkipped + ", errors " + $$String:##TSCErrors
+    031: If: NOT ##TSCQuiet
+    032: Msg Box: "Pull Groups": ##TSCLogPullGroups
+    033: End If
+
+[Collection: TSC Pull Col Units]
+    Remote URL: @@TSCBase + "/pull/units" + @@TSCAuthQS
+    XMLObjectPath: UNIT: 1: ENVELOPE
+    Fetch: NAME, FORMALNAME, DECIMALPLACES
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Function: TSC Pull Units]
+    Variable: vExists: Logical
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Pull blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCCreated: 0
+    005: Set: TSCAltered: 0
+    006: Set: TSCSkipped: 0
+    007: Set: TSCErrors: 0
+    008: Walk Collection: TSC Pull Col Units
+    009: If: $$IsEmpty:$NAME
+    010: Set: TSCSkipped: ##TSCSkipped + 1
+    011: Continue
+    012: End If
+    013: Set: vExists: NOT $$IsEmpty:($Name:Unit:$NAME)
+    014: New Object: Unit: $NAME: Yes
+    015: Set Value: Name: $NAME
+    016: If: NOT $$IsEmpty:$FORMALNAME
+    017: Set Value: OriginalName: $FORMALNAME
+    018: End If
+    019: If: NOT $$IsEmpty:$DECIMALPLACES
+    020: Set Value: DecimalPlaces: $$Number:$DECIMALPLACES
+    021: End If
+    022: If: NOT ##vExists
+    023: If: NOT $$IsEmpty:Yes
+    024: Set Value: IsSimpleUnit: Yes
+    025: End If
+    026: End If
+    027: Save Target
+    028: If: $$LastResult
+    029: If: ##vExists
+    030: Set: TSCAltered: ##TSCAltered + 1
+    031: Else
+    032: Set: TSCCreated: ##TSCCreated + 1
+    033: End If
+    034: Else
+    035: Set: TSCErrors: ##TSCErrors + 1
+    036: End If
+    037: End Walk
+    038: Set: TSCLogPullUnits: @@TSCStamp + " | created " + $$String:##TSCCreated + ", altered " + $$String:##TSCAltered + ", skipped " + $$String:##TSCSkipped + ", errors " + $$String:##TSCErrors
+    039: If: NOT ##TSCQuiet
+    040: Msg Box: "Pull Units": ##TSCLogPullUnits
+    041: End If
+
+[Collection: TSC Pull Col Godowns]
+    Remote URL: @@TSCBase + "/pull/godowns" + @@TSCAuthQS
+    XMLObjectPath: GODOWN: 1: ENVELOPE
+    Fetch: NAME, PARENT
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Function: TSC Pull Godowns]
+    Variable: vExists: Logical
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Pull blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCCreated: 0
+    005: Set: TSCAltered: 0
+    006: Set: TSCSkipped: 0
+    007: Set: TSCErrors: 0
+    008: Walk Collection: TSC Pull Col Godowns
+    009: If: $$IsEmpty:$NAME
+    010: Set: TSCSkipped: ##TSCSkipped + 1
+    011: Continue
+    012: End If
+    013: Set: vExists: NOT $$IsEmpty:($Name:Godown:$NAME)
+    014: New Object: Godown: $NAME: Yes
+    015: Set Value: Name: $NAME
+    016: If: NOT $$IsEmpty:$PARENT
+    017: Set Value: Parent: $PARENT
+    018: End If
+    019: Save Target
+    020: If: $$LastResult
+    021: If: ##vExists
+    022: Set: TSCAltered: ##TSCAltered + 1
+    023: Else
+    024: Set: TSCCreated: ##TSCCreated + 1
+    025: End If
+    026: Else
+    027: Set: TSCErrors: ##TSCErrors + 1
+    028: End If
+    029: End Walk
+    030: Set: TSCLogPullGodowns: @@TSCStamp + " | created " + $$String:##TSCCreated + ", altered " + $$String:##TSCAltered + ", skipped " + $$String:##TSCSkipped + ", errors " + $$String:##TSCErrors
+    031: If: NOT ##TSCQuiet
+    032: Msg Box: "Pull Godowns": ##TSCLogPullGodowns
+    033: End If
+
+[Collection: TSC Pull Col StockGroups]
+    Remote URL: @@TSCBase + "/pull/stockgroups" + @@TSCAuthQS
+    XMLObjectPath: STOCKGROUP: 1: ENVELOPE
+    Fetch: NAME, PARENT
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Function: TSC Pull StockGroups]
+    Variable: vExists: Logical
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Pull blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCCreated: 0
+    005: Set: TSCAltered: 0
+    006: Set: TSCSkipped: 0
+    007: Set: TSCErrors: 0
+    008: Walk Collection: TSC Pull Col StockGroups
+    009: If: $$IsEmpty:$NAME
+    010: Set: TSCSkipped: ##TSCSkipped + 1
+    011: Continue
+    012: End If
+    013: Set: vExists: NOT $$IsEmpty:($Name:Stock Group:$NAME)
+    014: New Object: Stock Group: $NAME: Yes
+    015: Set Value: Name: $NAME
+    016: If: NOT $$IsEmpty:$PARENT
+    017: Set Value: Parent: $PARENT
+    018: End If
+    019: Save Target
+    020: If: $$LastResult
+    021: If: ##vExists
+    022: Set: TSCAltered: ##TSCAltered + 1
+    023: Else
+    024: Set: TSCCreated: ##TSCCreated + 1
+    025: End If
+    026: Else
+    027: Set: TSCErrors: ##TSCErrors + 1
+    028: End If
+    029: End Walk
+    030: Set: TSCLogPullStockGroups: @@TSCStamp + " | created " + $$String:##TSCCreated + ", altered " + $$String:##TSCAltered + ", skipped " + $$String:##TSCSkipped + ", errors " + $$String:##TSCErrors
+    031: If: NOT ##TSCQuiet
+    032: Msg Box: "Pull Stock Groups": ##TSCLogPullStockGroups
+    033: End If
+
+[Collection: TSC Pull Col Ledgers]
+    Remote URL: @@TSCBase + "/pull/ledgers" + @@TSCAuthQS
+    XMLObjectPath: LEDGER: 1: ENVELOPE
+    Fetch: NAME, PARENT, GSTIN, STATE, COUNTRY, PINCODE, EMAIL, MOBILE, ADDRESS1, ADDRESS2, OPENINGBALANCE
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Function: TSC Pull Ledgers]
+    Variable: vExists: Logical
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Pull blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCCreated: 0
+    005: Set: TSCAltered: 0
+    006: Set: TSCSkipped: 0
+    007: Set: TSCErrors: 0
+    008: Walk Collection: TSC Pull Col Ledgers
+    009: If: $$IsEmpty:$NAME
+    010: Set: TSCSkipped: ##TSCSkipped + 1
+    011: Continue
+    012: End If
+    013: Set: vExists: NOT $$IsEmpty:($Name:Ledger:$NAME)
+    014: New Object: Ledger: $NAME: Yes
+    015: Set Value: Name: $NAME
+    016: If: NOT $$IsEmpty:$PARENT
+    017: Set Value: Parent: $PARENT
+    018: End If
+    019: If: NOT $$IsEmpty:$GSTIN
+    020: Set Value: PartyGSTIN: $GSTIN
+    021: End If
+    022: If: NOT $$IsEmpty:$STATE
+    023: Set Value: LedStateName: $STATE
+    024: End If
+    025: If: NOT $$IsEmpty:$COUNTRY
+    026: Set Value: CountryName: $COUNTRY
+    027: End If
+    028: If: NOT $$IsEmpty:$PINCODE
+    029: Set Value: PinCode: $PINCODE
+    030: End If
+    031: If: NOT $$IsEmpty:$EMAIL
+    032: Set Value: Email: $EMAIL
+    033: End If
+    034: If: NOT $$IsEmpty:$MOBILE
+    035: Set Value: LedgerMobile: $MOBILE
+    036: End If
+    037: If: NOT ##vExists
+    038: If: NOT $$IsEmpty:$OPENINGBALANCE
+    039: Set Value: OpeningBalance: $$AsAmount:$OPENINGBALANCE
+    040: End If
+    041: If: NOT $$IsEmpty:$ADDRESS1
+    042: Insert Collection Object: Address
+    043: Set Value: Address: $ADDRESS1
+    044: Set Target: ..
+    045: End If
+    046: If: NOT $$IsEmpty:$ADDRESS2
+    047: Insert Collection Object: Address
+    048: Set Value: Address: $ADDRESS2
+    049: Set Target: ..
+    050: End If
+    051: End If
+    052: Save Target
+    053: If: $$LastResult
+    054: If: ##vExists
+    055: Set: TSCAltered: ##TSCAltered + 1
+    056: Else
+    057: Set: TSCCreated: ##TSCCreated + 1
+    058: End If
+    059: Else
+    060: Set: TSCErrors: ##TSCErrors + 1
+    061: End If
+    062: End Walk
+    063: Set: TSCLogPullLedgers: @@TSCStamp + " | created " + $$String:##TSCCreated + ", altered " + $$String:##TSCAltered + ", skipped " + $$String:##TSCSkipped + ", errors " + $$String:##TSCErrors
+    064: If: NOT ##TSCQuiet
+    065: Msg Box: "Pull Ledgers / Parties": ##TSCLogPullLedgers
+    066: End If
+
+[Collection: TSC Pull Col StockItems]
+    Remote URL: @@TSCBase + "/pull/stockitems" + @@TSCAuthQS
+    XMLObjectPath: STOCKITEM: 1: ENVELOPE
+    Fetch: NAME, PARENT, CATEGORY, BASEUNITS, GSTAPPLICABLE, HSNCODE, GSTRATE, OPENINGQTY, OPENINGRATE, OPENINGVALUE
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Function: TSC Pull StockItems]
+    Variable: vExists: Logical
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Pull blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCCreated: 0
+    005: Set: TSCAltered: 0
+    006: Set: TSCSkipped: 0
+    007: Set: TSCErrors: 0
+    008: Walk Collection: TSC Pull Col StockItems
+    009: If: $$IsEmpty:$NAME
+    010: Set: TSCSkipped: ##TSCSkipped + 1
+    011: Continue
+    012: End If
+    013: Set: vExists: NOT $$IsEmpty:($Name:Stock Item:$NAME)
+    014: New Object: Stock Item: $NAME: Yes
+    015: Set Value: Name: $NAME
+    016: If: NOT $$IsEmpty:$PARENT
+    017: Set Value: Parent: $PARENT
+    018: End If
+    019: If: NOT $$IsEmpty:$CATEGORY
+    020: Set Value: Category: $CATEGORY
+    021: End If
+    022: If: NOT $$IsEmpty:$BASEUNITS
+    023: Set Value: BaseUnits: $BASEUNITS
+    024: End If
+    025: If: NOT ##vExists
+    026: If: NOT $$IsEmpty:$OPENINGQTY
+    027: Set Value: OpeningBalance: $$AsQty:$OPENINGQTY
+    028: End If
+    029: If: NOT $$IsEmpty:$OPENINGRATE
+    030: Set Value: OpeningRate: $$AsRate:$OPENINGRATE
+    031: End If
+    032: If: NOT $$IsEmpty:$OPENINGVALUE
+    033: Set Value: OpeningValue: $$AsAmount:$OPENINGVALUE
+    034: End If
+    035: End If
+    036: If: NOT $$IsEmpty:$HSNCODE
+    037: Set Value: GSTApplicable: $$SysName:Applicable
+    038: Set Value: GSTTypeofSupply: "Goods"
+    039: Insert Collection Object: GSTDetails
+    040: Set Value: ApplicableFrom: ##SVFromDate
+    041: Set Value: HSNCode: $HSNCODE
+    042: Set Value: Taxability: "Taxable"
+    043: Insert Collection Object: StateWiseDetails
+    044: Set Value: StateName: $$SysName:Any
+    045: Insert Collection Object: RateDetails
+    046: Set Value: GSTRateDutyHead: "Central Tax"
+    047: Set Value: GSTRateValuationType: "Based on Value"
+    048: Set Value: GSTRate: $$Number:$GSTRATE / 2
+    049: Set Target: ..
+    050: Insert Collection Object: RateDetails
+    051: Set Value: GSTRateDutyHead: "State Tax"
+    052: Set Value: GSTRateValuationType: "Based on Value"
+    053: Set Value: GSTRate: $$Number:$GSTRATE / 2
+    054: Set Target: ..
+    055: Insert Collection Object: RateDetails
+    056: Set Value: GSTRateDutyHead: "Integrated Tax"
+    057: Set Value: GSTRateValuationType: "Based on Value"
+    058: Set Value: GSTRate: $$Number:$GSTRATE
+    059: Set Target: ..
+    060: Set Target: ..
+    061: Set Target: ..
+    062: End If
+    063: Save Target
+    064: If: $$LastResult
+    065: If: ##vExists
+    066: Set: TSCAltered: ##TSCAltered + 1
+    067: Else
+    068: Set: TSCCreated: ##TSCCreated + 1
+    069: End If
+    070: Else
+    071: Set: TSCErrors: ##TSCErrors + 1
+    072: End If
+    073: End Walk
+    074: Set: TSCLogPullStockItems: @@TSCStamp + " | created " + $$String:##TSCCreated + ", altered " + $$String:##TSCAltered + ", skipped " + $$String:##TSCSkipped + ", errors " + $$String:##TSCErrors
+    075: If: NOT ##TSCQuiet
+    076: Msg Box: "Pull Stock Items": ##TSCLogPullStockItems
+    077: End If
+
+[Collection: TSC Pull Col SalesOrders]
+    Remote URL: @@TSCBase + "/pull/salesorders" + @@TSCAuthQS
+    XMLObjectPath: VOUCHER: 1: ENVELOPE
+    Fetch: VOUCHERNUMBER, DATE, PARTYNAME, REFERENCE, NARRATION, TOTAL
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Collection: TSC Pull Items SalesOrders]
+    Remote URL: @@TSCBase + "/pull/salesorders" + @@TSCAuthQS
+    XMLObjectPath: ITEM: 1: ENVELOPE
+    Fetch: VOUCHERNUMBER, STOCKITEM, QTY, RATE, AMOUNT, GODOWN, BATCH, DUEDATE, LEDGER
+    Export Header: "x-api-key: " + ##TSApiKey
+    Filter: TSC Flt PullNo
+
+[Collection: TSC Pull Tax SalesOrders]
+    Remote URL: @@TSCBase + "/pull/salesorders" + @@TSCAuthQS
+    XMLObjectPath: TAX: 1: ENVELOPE
+    Fetch: VOUCHERNUMBER, LEDGERNAME, AMOUNT
+    Export Header: "x-api-key: " + ##TSApiKey
+    Filter: TSC Flt PullNo
+
+[Collection: TSC Exists SalesOrders]
+    Type: Voucher
+    Fetch: VoucherNumber, VoucherTypeName
+    Filter: TSC Flt Exists SalesOrders
+
+[System: Formula]
+    TSC Flt Exists SalesOrders: $VoucherNumber = ##TSCPullNo AND $VoucherTypeName = "Sales Order"
+
+[Function: TSC Pull SalesOrders]
+    Variable: vExists: Logical
+    Local Formula: TSCQty: $$AsQty:$QTY
+    Local Formula: TSCRate: $$AsRate:$RATE
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Pull blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCCreated: 0
+    005: Set: TSCAltered: 0
+    006: Set: TSCSkipped: 0
+    007: Set: TSCErrors: 0
+    008: Walk Collection: TSC Pull Col SalesOrders
+    009: Set: TSCPullNo: $VOUCHERNUMBER
+    010: If: $$IsEmpty:##TSCPullNo OR $$NumItems:TSC Exists SalesOrders > 0  ;; existing order numbers are skipped (no duplicates)
+    011: Set: TSCSkipped: ##TSCSkipped + 1
+    012: Continue
+    013: End If
+    014: Set: vExists: No
+    015: New Object: Voucher
+    016: Set Value: VoucherTypeName: "Sales Order"
+    017: Set Value: Date: $$Date:$DATE
+    018: Set Value: VoucherNumber: $VOUCHERNUMBER
+    019: Set Value: PartyLedgerName: $PARTYNAME
+    020: Set Value: Reference: $REFERENCE
+    021: Set Value: Narration: $NARRATION
+    022: Set Value: PersistedView: $$SysName:InvoiceVoucherView
+    023: Set Value: IsInvoice: Yes
+    024: Insert Collection Object: LedgerEntries
+    025: Set Value: LedgerName: $PARTYNAME
+    026: Set Value: IsPartyLedger: Yes
+    027: Set Value: IsDeemedPositive: Yes
+    028: Set Value: Amount: -1 * $$AsAmount:$TOTAL
+    029: Set Target: ..
+    030: Walk Collection: TSC Pull Items SalesOrders
+    031: Insert Collection Object: AllInventoryEntries
+    032: Set Value: StockItemName: $STOCKITEM
+    033: Set Value: IsDeemedPositive: No
+    034: Set Value: Rate: $$TgtObject:@TSCRate
+    035: Set Value: BilledQty: $$TgtObject:@TSCQty
+    036: Set Value: ActualQty: $$TgtObject:@TSCQty
+    037: Set Value: Amount: $$AsAmount:$AMOUNT
+    038: Insert Collection Object: BatchAllocations
+    039: Set Value: GodownName: if $$IsEmpty:$GODOWN then $$SysName:MainLocation else $GODOWN
+    040: Set Value: BatchName: if $$IsEmpty:$BATCH then $$SysName:PrimaryBatch else $BATCH
+    041: Set Value: OrderNo: $VOUCHERNUMBER
+    042: If: NOT $$IsEmpty:$DUEDATE
+    043: Set Value: OrderDueDate: $$Date:$DUEDATE
+    044: End If
+    045: Set Value: BilledQty: $$TgtObject:@TSCQty
+    046: Set Value: ActualQty: $$TgtObject:@TSCQty
+    047: Set Value: Amount: $$AsAmount:$AMOUNT
+    048: Set Target: ..
+    049: Insert Collection Object: AccountingAllocations
+    050: Set Value: LedgerName: $LEDGER
+    051: Set Value: IsDeemedPositive: No
+    052: Set Value: Amount: $$AsAmount:$AMOUNT
+    053: Set Target: ..
+    054: Set Target: ..
+    055: End Walk
+    056: Walk Collection: TSC Pull Tax SalesOrders
+    057: Insert Collection Object: LedgerEntries
+    058: Set Value: LedgerName: $LEDGERNAME
+    059: Set Value: IsDeemedPositive: No
+    060: Set Value: Amount: $$AsAmount:$AMOUNT
+    061: Set Target: ..
+    062: End Walk
+    063: Save Target
+    064: If: $$LastResult
+    065: If: ##vExists
+    066: Set: TSCAltered: ##TSCAltered + 1
+    067: Else
+    068: Set: TSCCreated: ##TSCCreated + 1
+    069: End If
+    070: Else
+    071: Set: TSCErrors: ##TSCErrors + 1
+    072: End If
+    073: End Walk
+    074: Set: TSCLogPullSalesOrders: @@TSCStamp + " | created " + $$String:##TSCCreated + ", altered " + $$String:##TSCAltered + ", skipped " + $$String:##TSCSkipped + ", errors " + $$String:##TSCErrors
+    075: If: NOT ##TSCQuiet
+    076: Msg Box: "Pull Sales Orders": ##TSCLogPullSalesOrders
+    077: End If
+
+[Collection: TSC Pull Col PurchaseOrders]
+    Remote URL: @@TSCBase + "/pull/purchaseorders" + @@TSCAuthQS
+    XMLObjectPath: VOUCHER: 1: ENVELOPE
+    Fetch: VOUCHERNUMBER, DATE, PARTYNAME, REFERENCE, NARRATION, TOTAL
+    Export Header: "x-api-key: " + ##TSApiKey
+
+[Collection: TSC Pull Items PurchaseOrders]
+    Remote URL: @@TSCBase + "/pull/purchaseorders" + @@TSCAuthQS
+    XMLObjectPath: ITEM: 1: ENVELOPE
+    Fetch: VOUCHERNUMBER, STOCKITEM, QTY, RATE, AMOUNT, GODOWN, BATCH, DUEDATE, LEDGER
+    Export Header: "x-api-key: " + ##TSApiKey
+    Filter: TSC Flt PullNo
+
+[Collection: TSC Pull Tax PurchaseOrders]
+    Remote URL: @@TSCBase + "/pull/purchaseorders" + @@TSCAuthQS
+    XMLObjectPath: TAX: 1: ENVELOPE
+    Fetch: VOUCHERNUMBER, LEDGERNAME, AMOUNT
+    Export Header: "x-api-key: " + ##TSApiKey
+    Filter: TSC Flt PullNo
+
+[Collection: TSC Exists PurchaseOrders]
+    Type: Voucher
+    Fetch: VoucherNumber, VoucherTypeName
+    Filter: TSC Flt Exists PurchaseOrders
+
+[System: Formula]
+    TSC Flt Exists PurchaseOrders: $VoucherNumber = ##TSCPullNo AND $VoucherTypeName = "Purchase Order"
+
+[Function: TSC Pull PurchaseOrders]
+    Variable: vExists: Logical
+    Local Formula: TSCQty: $$AsQty:$QTY
+    Local Formula: TSCRate: $$AsRate:$RATE
+    000: If: NOT @@TSCGateOK
+    001: Msg Box: "Pull blocked": "Open company does not match the configured company"
+    002: Return
+    003: End If
+    004: Set: TSCCreated: 0
+    005: Set: TSCAltered: 0
+    006: Set: TSCSkipped: 0
+    007: Set: TSCErrors: 0
+    008: Walk Collection: TSC Pull Col PurchaseOrders
+    009: Set: TSCPullNo: $VOUCHERNUMBER
+    010: If: $$IsEmpty:##TSCPullNo OR $$NumItems:TSC Exists PurchaseOrders > 0  ;; existing order numbers are skipped (no duplicates)
+    011: Set: TSCSkipped: ##TSCSkipped + 1
+    012: Continue
+    013: End If
+    014: Set: vExists: No
+    015: New Object: Voucher
+    016: Set Value: VoucherTypeName: "Purchase Order"
+    017: Set Value: Date: $$Date:$DATE
+    018: Set Value: VoucherNumber: $VOUCHERNUMBER
+    019: Set Value: PartyLedgerName: $PARTYNAME
+    020: Set Value: Reference: $REFERENCE
+    021: Set Value: Narration: $NARRATION
+    022: Set Value: PersistedView: $$SysName:InvoiceVoucherView
+    023: Set Value: IsInvoice: Yes
+    024: Insert Collection Object: LedgerEntries
+    025: Set Value: LedgerName: $PARTYNAME
+    026: Set Value: IsPartyLedger: Yes
+    027: Set Value: IsDeemedPositive: No
+    028: Set Value: Amount: $$AsAmount:$TOTAL
+    029: Set Target: ..
+    030: Walk Collection: TSC Pull Items PurchaseOrders
+    031: Insert Collection Object: AllInventoryEntries
+    032: Set Value: StockItemName: $STOCKITEM
+    033: Set Value: IsDeemedPositive: Yes
+    034: Set Value: Rate: $$TgtObject:@TSCRate
+    035: Set Value: BilledQty: $$TgtObject:@TSCQty
+    036: Set Value: ActualQty: $$TgtObject:@TSCQty
+    037: Set Value: Amount: -1 * $$AsAmount:$AMOUNT
+    038: Insert Collection Object: BatchAllocations
+    039: Set Value: GodownName: if $$IsEmpty:$GODOWN then $$SysName:MainLocation else $GODOWN
+    040: Set Value: BatchName: if $$IsEmpty:$BATCH then $$SysName:PrimaryBatch else $BATCH
+    041: Set Value: OrderNo: $VOUCHERNUMBER
+    042: If: NOT $$IsEmpty:$DUEDATE
+    043: Set Value: OrderDueDate: $$Date:$DUEDATE
+    044: End If
+    045: Set Value: BilledQty: $$TgtObject:@TSCQty
+    046: Set Value: ActualQty: $$TgtObject:@TSCQty
+    047: Set Value: Amount: -1 * $$AsAmount:$AMOUNT
+    048: Set Target: ..
+    049: Insert Collection Object: AccountingAllocations
+    050: Set Value: LedgerName: $LEDGER
+    051: Set Value: IsDeemedPositive: Yes
+    052: Set Value: Amount: -1 * $$AsAmount:$AMOUNT
+    053: Set Target: ..
+    054: Set Target: ..
+    055: End Walk
+    056: Walk Collection: TSC Pull Tax PurchaseOrders
+    057: Insert Collection Object: LedgerEntries
+    058: Set Value: LedgerName: $LEDGERNAME
+    059: Set Value: IsDeemedPositive: Yes
+    060: Set Value: Amount: -1 * $$AsAmount:$AMOUNT
+    061: Set Target: ..
+    062: End Walk
+    063: Save Target
+    064: If: $$LastResult
+    065: If: ##vExists
+    066: Set: TSCAltered: ##TSCAltered + 1
+    067: Else
+    068: Set: TSCCreated: ##TSCCreated + 1
+    069: End If
+    070: Else
+    071: Set: TSCErrors: ##TSCErrors + 1
+    072: End If
+    073: End Walk
+    074: Set: TSCLogPullPurchaseOrders: @@TSCStamp + " | created " + $$String:##TSCCreated + ", altered " + $$String:##TSCAltered + ", skipped " + $$String:##TSCSkipped + ", errors " + $$String:##TSCErrors
+    075: If: NOT ##TSCQuiet
+    076: Msg Box: "Pull Purchase Orders": ##TSCLogPullPurchaseOrders
+    077: End If
+
+[System: Formula]
+    TSC Flt PullNo: $VOUCHERNUMBER = ##TSCPullNo
+
+[Function: TSC Pull All]
+    000: Set: TSCQuiet: Yes
+    001: Call: TSC Pull Groups
+    002: Call: TSC Pull Units
+    003: Call: TSC Pull Godowns
+    004: Call: TSC Pull StockGroups
+    005: Call: TSC Pull Ledgers
+    006: Call: TSC Pull StockItems
+    007: Call: TSC Pull SalesOrders
+    008: Call: TSC Pull PurchaseOrders
+    009: Set: TSCQuiet: No
+    010: Display: TSC Log
+
+[Report: TSC Log]
+    Form: TSC Log
+    Title: "Sync Log"
+
+[Form: TSC Log]
+    Part: TSC Log
+    Width: 90% Screen
+
+[Part: TSC Log]
+    Lines: TSC Log TSCLogPushGroups, TSC Log TSCLogPushUnits, TSC Log TSCLogPushGodowns, TSC Log TSCLogPushStockGroups, TSC Log TSCLogPushLedgers, TSC Log TSCLogPushStockItems, TSC Log TSCLogPushClosingStock, TSC Log TSCLogPushSalesOrders, TSC Log TSCLogPushPurchaseOrders, TSC Log TSCLogPullGroups, TSC Log TSCLogPullUnits, TSC Log TSCLogPullGodowns, TSC Log TSCLogPullStockGroups, TSC Log TSCLogPullLedgers, TSC Log TSCLogPullStockItems, TSC Log TSCLogPullSalesOrders, TSC Log TSCLogPullPurchaseOrders
+
+[Line: TSC Log TSCLogPushGroups]
+    Fields: Medium Prompt, TSC Log TSCLogPushGroups Fld
+    Local: Field: Medium Prompt: Info: "Push Groups"
+
+[Field: TSC Log TSCLogPushGroups Fld]
+    Use: Name Field
+    Set As: ##TSCLogPushGroups
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPushUnits]
+    Fields: Medium Prompt, TSC Log TSCLogPushUnits Fld
+    Local: Field: Medium Prompt: Info: "Push Units"
+
+[Field: TSC Log TSCLogPushUnits Fld]
+    Use: Name Field
+    Set As: ##TSCLogPushUnits
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPushGodowns]
+    Fields: Medium Prompt, TSC Log TSCLogPushGodowns Fld
+    Local: Field: Medium Prompt: Info: "Push Godowns"
+
+[Field: TSC Log TSCLogPushGodowns Fld]
+    Use: Name Field
+    Set As: ##TSCLogPushGodowns
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPushStockGroups]
+    Fields: Medium Prompt, TSC Log TSCLogPushStockGroups Fld
+    Local: Field: Medium Prompt: Info: "Push Stock Groups"
+
+[Field: TSC Log TSCLogPushStockGroups Fld]
+    Use: Name Field
+    Set As: ##TSCLogPushStockGroups
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPushLedgers]
+    Fields: Medium Prompt, TSC Log TSCLogPushLedgers Fld
+    Local: Field: Medium Prompt: Info: "Push Ledgers / Parties"
+
+[Field: TSC Log TSCLogPushLedgers Fld]
+    Use: Name Field
+    Set As: ##TSCLogPushLedgers
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPushStockItems]
+    Fields: Medium Prompt, TSC Log TSCLogPushStockItems Fld
+    Local: Field: Medium Prompt: Info: "Push Stock Items"
+
+[Field: TSC Log TSCLogPushStockItems Fld]
+    Use: Name Field
+    Set As: ##TSCLogPushStockItems
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPushClosingStock]
+    Fields: Medium Prompt, TSC Log TSCLogPushClosingStock Fld
+    Local: Field: Medium Prompt: Info: "Push Closing Stock"
+
+[Field: TSC Log TSCLogPushClosingStock Fld]
+    Use: Name Field
+    Set As: ##TSCLogPushClosingStock
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPushSalesOrders]
+    Fields: Medium Prompt, TSC Log TSCLogPushSalesOrders Fld
+    Local: Field: Medium Prompt: Info: "Push Sales Orders"
+
+[Field: TSC Log TSCLogPushSalesOrders Fld]
+    Use: Name Field
+    Set As: ##TSCLogPushSalesOrders
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPushPurchaseOrders]
+    Fields: Medium Prompt, TSC Log TSCLogPushPurchaseOrders Fld
+    Local: Field: Medium Prompt: Info: "Push Purchase Orders"
+
+[Field: TSC Log TSCLogPushPurchaseOrders Fld]
+    Use: Name Field
+    Set As: ##TSCLogPushPurchaseOrders
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPullGroups]
+    Fields: Medium Prompt, TSC Log TSCLogPullGroups Fld
+    Local: Field: Medium Prompt: Info: "Pull Groups"
+
+[Field: TSC Log TSCLogPullGroups Fld]
+    Use: Name Field
+    Set As: ##TSCLogPullGroups
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPullUnits]
+    Fields: Medium Prompt, TSC Log TSCLogPullUnits Fld
+    Local: Field: Medium Prompt: Info: "Pull Units"
+
+[Field: TSC Log TSCLogPullUnits Fld]
+    Use: Name Field
+    Set As: ##TSCLogPullUnits
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPullGodowns]
+    Fields: Medium Prompt, TSC Log TSCLogPullGodowns Fld
+    Local: Field: Medium Prompt: Info: "Pull Godowns"
+
+[Field: TSC Log TSCLogPullGodowns Fld]
+    Use: Name Field
+    Set As: ##TSCLogPullGodowns
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPullStockGroups]
+    Fields: Medium Prompt, TSC Log TSCLogPullStockGroups Fld
+    Local: Field: Medium Prompt: Info: "Pull Stock Groups"
+
+[Field: TSC Log TSCLogPullStockGroups Fld]
+    Use: Name Field
+    Set As: ##TSCLogPullStockGroups
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPullLedgers]
+    Fields: Medium Prompt, TSC Log TSCLogPullLedgers Fld
+    Local: Field: Medium Prompt: Info: "Pull Ledgers / Parties"
+
+[Field: TSC Log TSCLogPullLedgers Fld]
+    Use: Name Field
+    Set As: ##TSCLogPullLedgers
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPullStockItems]
+    Fields: Medium Prompt, TSC Log TSCLogPullStockItems Fld
+    Local: Field: Medium Prompt: Info: "Pull Stock Items"
+
+[Field: TSC Log TSCLogPullStockItems Fld]
+    Use: Name Field
+    Set As: ##TSCLogPullStockItems
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPullSalesOrders]
+    Fields: Medium Prompt, TSC Log TSCLogPullSalesOrders Fld
+    Local: Field: Medium Prompt: Info: "Pull Sales Orders"
+
+[Field: TSC Log TSCLogPullSalesOrders Fld]
+    Use: Name Field
+    Set As: ##TSCLogPullSalesOrders
+    Full Width: Yes
+
+[Line: TSC Log TSCLogPullPurchaseOrders]
+    Fields: Medium Prompt, TSC Log TSCLogPullPurchaseOrders Fld
+    Local: Field: Medium Prompt: Info: "Pull Purchase Orders"
+
+[Field: TSC Log TSCLogPullPurchaseOrders Fld]
+    Use: Name Field
+    Set As: ##TSCLogPullPurchaseOrders
+    Full Width: Yes
+
+[Field: TSC H ENTITY]
+    Use: Name Field
+    Set As: "groups"
+    XMLTag: "ENTITY"
+
+[Field: TSC H COMPANY]
+    Use: Name Field
+    Set As: ##TSCompanyCode
+    XMLTag: "COMPANY"
+
+[Field: TSC H COMPANYNAME]
+    Use: Name Field
+    Set As: ##SVCurrentCompany
+    XMLTag: "COMPANYNAME"
+
+[Field: TSC H FROMDATE]
+    Use: Name Field
+    Set As: $$String:##TSFromDate:UniversalDate
+    XMLTag: "FROMDATE"
+
+[Field: TSC H TODATE]
+    Use: Name Field
+    Set As: $$String:##TSToDate:UniversalDate
+    XMLTag: "TODATE"
+
+[Field: TSC H COUNT]
+    Use: Name Field
+    Set As: $$String:($$NumItems:TSC Col Groups)
+    XMLTag: "COUNT"
+
+[Field: TSC Groups NAME]
+    Use: Name Field
+    Set As: $Name
+    XMLTag: "NAME"
+
+[Field: TSC Groups PARENT]
+    Use: Name Field
+    Set As: $Parent
+    XMLTag: "PARENT"
+
+[Field: TSC Groups ISREVENUE]
+    Use: Name Field
+    Set As: $$String:$IsRevenue
+    XMLTag: "ISREVENUE"
+
+[Field: TSC Groups GUID]
+    Use: Name Field
+    Set As: $GUID
+    XMLTag: "GUID"
+
+[Field: TSC Groups MASTERID]
+    Use: Name Field
+    Set As: $$String:$MasterID
+    XMLTag: "MASTERID"
+
+[Field: TSC Groups ALTERID]
+    Use: Name Field
+    Set As: $$String:$AlterID
+    XMLTag: "ALTERID"
+
+[Field: TSC Units NAME]
+    Use: Name Field
+    Set As: $Name
+    XMLTag: "NAME"
+
+[Field: TSC Units FORMALNAME]
+    Use: Name Field
+    Set As: $OriginalName
+    XMLTag: "FORMALNAME"
+
+[Field: TSC Units DECIMALPLACES]
+    Use: Name Field
+    Set As: $$String:$DecimalPlaces
+    XMLTag: "DECIMALPLACES"
+
+[Field: TSC Units ISSIMPLEUNIT]
+    Use: Name Field
+    Set As: $$String:$IsSimpleUnit
+    XMLTag: "ISSIMPLEUNIT"
+
+[Field: TSC Units GUID]
+    Use: Name Field
+    Set As: $GUID
+    XMLTag: "GUID"
+
+[Field: TSC Units MASTERID]
+    Use: Name Field
+    Set As: $$String:$MasterID
+    XMLTag: "MASTERID"
+
+[Field: TSC Units ALTERID]
+    Use: Name Field
+    Set As: $$String:$AlterID
+    XMLTag: "ALTERID"
+
+[Field: TSC Godowns NAME]
+    Use: Name Field
+    Set As: $Name
+    XMLTag: "NAME"
+
+[Field: TSC Godowns PARENT]
+    Use: Name Field
+    Set As: $Parent
+    XMLTag: "PARENT"
+
+[Field: TSC Godowns GUID]
+    Use: Name Field
+    Set As: $GUID
+    XMLTag: "GUID"
+
+[Field: TSC Godowns MASTERID]
+    Use: Name Field
+    Set As: $$String:$MasterID
+    XMLTag: "MASTERID"
+
+[Field: TSC Godowns ALTERID]
+    Use: Name Field
+    Set As: $$String:$AlterID
+    XMLTag: "ALTERID"
+
+[Field: TSC StockGroups NAME]
+    Use: Name Field
+    Set As: $Name
+    XMLTag: "NAME"
+
+[Field: TSC StockGroups PARENT]
+    Use: Name Field
+    Set As: $Parent
+    XMLTag: "PARENT"
+
+[Field: TSC StockGroups GUID]
+    Use: Name Field
+    Set As: $GUID
+    XMLTag: "GUID"
+
+[Field: TSC StockGroups MASTERID]
+    Use: Name Field
+    Set As: $$String:$MasterID
+    XMLTag: "MASTERID"
+
+[Field: TSC StockGroups ALTERID]
+    Use: Name Field
+    Set As: $$String:$AlterID
+    XMLTag: "ALTERID"
+
+[Field: TSC Ledgers NAME]
+    Use: Name Field
+    Set As: $Name
+    XMLTag: "NAME"
+
+[Field: TSC Ledgers PARENT]
+    Use: Name Field
+    Set As: $Parent
+    XMLTag: "PARENT"
+
+[Field: TSC Ledgers GSTIN]
+    Use: Name Field
+    Set As: $PartyGSTIN
+    XMLTag: "GSTIN"
+
+[Field: TSC Ledgers STATE]
+    Use: Name Field
+    Set As: $LedStateName
+    XMLTag: "STATE"
+
+[Field: TSC Ledgers COUNTRY]
+    Use: Name Field
+    Set As: $CountryName
+    XMLTag: "COUNTRY"
+
+[Field: TSC Ledgers PINCODE]
+    Use: Name Field
+    Set As: $PinCode
+    XMLTag: "PINCODE"
+
+[Field: TSC Ledgers EMAIL]
+    Use: Name Field
+    Set As: $Email
+    XMLTag: "EMAIL"
+
+[Field: TSC Ledgers MOBILE]
+    Use: Name Field
+    Set As: $LedgerMobile
+    XMLTag: "MOBILE"
+
+[Field: TSC Ledgers CONTACT]
+    Use: Name Field
+    Set As: $LedgerContact
+    XMLTag: "CONTACT"
+
+[Field: TSC Ledgers ADDRESS]
+    Use: Name Field
+    Set As: $$FullList:Address:$Address
+    XMLTag: "ADDRESS"
+
+[Field: TSC Ledgers OPENINGBALANCE]
+    Use: Name Field
+    Set As: $$String:$$Number:$OpeningBalance
+    XMLTag: "OPENINGBALANCE"
+
+[Field: TSC Ledgers CLOSINGBALANCE]
+    Use: Name Field
+    Set As: $$String:$$Number:$ClosingBalance
+    XMLTag: "CLOSINGBALANCE"
+
+[Field: TSC Ledgers GUID]
+    Use: Name Field
+    Set As: $GUID
+    XMLTag: "GUID"
+
+[Field: TSC Ledgers MASTERID]
+    Use: Name Field
+    Set As: $$String:$MasterID
+    XMLTag: "MASTERID"
+
+[Field: TSC Ledgers ALTERID]
+    Use: Name Field
+    Set As: $$String:$AlterID
+    XMLTag: "ALTERID"
+
+[Field: TSC StockItems NAME]
+    Use: Name Field
+    Set As: $Name
+    XMLTag: "NAME"
+
+[Field: TSC StockItems PARENT]
+    Use: Name Field
+    Set As: $Parent
+    XMLTag: "PARENT"
+
+[Field: TSC StockItems CATEGORY]
+    Use: Name Field
+    Set As: $Category
+    XMLTag: "CATEGORY"
+
+[Field: TSC StockItems BASEUNITS]
+    Use: Name Field
+    Set As: $BaseUnits
+    XMLTag: "BASEUNITS"
+
+[Field: TSC StockItems GSTAPPLICABLE]
+    Use: Name Field
+    Set As: $GSTApplicable
+    XMLTag: "GSTAPPLICABLE"
+
+[Field: TSC StockItems HSNCODE]
+    Use: Name Field
+    Set As: $$String:$GSTDetails[Last].HSNCode
+    XMLTag: "HSNCODE"
+
+[Field: TSC StockItems OPENINGQTY]
+    Use: Name Field
+    Set As: $$String:$$Number:$OpeningBalance
+    XMLTag: "OPENINGQTY"
+
+[Field: TSC StockItems OPENINGRATE]
+    Use: Name Field
+    Set As: $$String:$$Number:$OpeningRate
+    XMLTag: "OPENINGRATE"
+
+[Field: TSC StockItems OPENINGVALUE]
+    Use: Name Field
+    Set As: $$String:$$Number:$OpeningValue
+    XMLTag: "OPENINGVALUE"
+
+[Field: TSC StockItems CLOSINGQTY]
+    Use: Name Field
+    Set As: $$String:$$Number:$ClosingBalance
+    XMLTag: "CLOSINGQTY"
+
+[Field: TSC StockItems CLOSINGVALUE]
+    Use: Name Field
+    Set As: $$String:$$Number:$ClosingValue
+    XMLTag: "CLOSINGVALUE"
+
+[Field: TSC StockItems GUID]
+    Use: Name Field
+    Set As: $GUID
+    XMLTag: "GUID"
+
+[Field: TSC StockItems MASTERID]
+    Use: Name Field
+    Set As: $$String:$MasterID
+    XMLTag: "MASTERID"
+
+[Field: TSC StockItems ALTERID]
+    Use: Name Field
+    Set As: $$String:$AlterID
+    XMLTag: "ALTERID"
+
+[Field: TSC ClosingStock NAME]
+    Use: Name Field
+    Set As: $Name
+    XMLTag: "NAME"
+
+[Field: TSC ClosingStock PARENT]
+    Use: Name Field
+    Set As: $Parent
+    XMLTag: "PARENT"
+
+[Field: TSC ClosingStock BASEUNITS]
+    Use: Name Field
+    Set As: $BaseUnits
+    XMLTag: "BASEUNITS"
+
+[Field: TSC ClosingStock CLOSINGQTY]
+    Use: Name Field
+    Set As: $$String:$$Number:$ClosingBalance
+    XMLTag: "CLOSINGQTY"
+
+[Field: TSC ClosingStock CLOSINGRATE]
+    Use: Name Field
+    Set As: $$String:$$Number:$ClosingRate
+    XMLTag: "CLOSINGRATE"
+
+[Field: TSC ClosingStock CLOSINGVALUE]
+    Use: Name Field
+    Set As: $$String:$$Number:$ClosingValue
+    XMLTag: "CLOSINGVALUE"
+
+[Field: TSC V DATE]
+    Use: Name Field
+    Set As: $$String:$Date:UniversalDate
+    XMLTag: "DATE"
+
+[Field: TSC V VOUCHERTYPE]
+    Use: Name Field
+    Set As: $VoucherTypeName
+    XMLTag: "VOUCHERTYPE"
+
+[Field: TSC V VOUCHERNUMBER]
+    Use: Name Field
+    Set As: $VoucherNumber
+    XMLTag: "VOUCHERNUMBER"
+
+[Field: TSC V REFERENCE]
+    Use: Name Field
+    Set As: $Reference
+    XMLTag: "REFERENCE"
+
+[Field: TSC V PARTYNAME]
+    Use: Name Field
+    Set As: $PartyLedgerName
+    XMLTag: "PARTYNAME"
+
+[Field: TSC V PARTYGSTIN]
+    Use: Name Field
+    Set As: $PartyGSTIN
+    XMLTag: "PARTYGSTIN"
+
+[Field: TSC V PLACEOFSUPPLY]
+    Use: Name Field
+    Set As: $PlaceOfSupply
+    XMLTag: "PLACEOFSUPPLY"
+
+[Field: TSC V NARRATION]
+    Use: Name Field
+    Set As: $Narration
+    XMLTag: "NARRATION"
+
+[Field: TSC V TOTAL]
+    Use: Name Field
+    Set As: $$String:$$Number:$Amount
+    XMLTag: "TOTAL"
+
+[Field: TSC V GUID]
+    Use: Name Field
+    Set As: $GUID
+    XMLTag: "GUID"
+
+[Field: TSC V MASTERID]
+    Use: Name Field
+    Set As: $$String:$MasterID
+    XMLTag: "MASTERID"
+
+[Field: TSC V ALTERID]
+    Use: Name Field
+    Set As: $$String:$AlterID
+    XMLTag: "ALTERID"
+
+[Field: TSC I STOCKITEM]
+    Use: Name Field
+    Set As: $StockItemName
+    XMLTag: "STOCKITEM"
+
+[Field: TSC I QTY]
+    Use: Name Field
+    Set As: $$String:$$Number:$BilledQty
+    XMLTag: "QTY"
+
+[Field: TSC I ACTUALQTY]
+    Use: Name Field
+    Set As: $$String:$$Number:$ActualQty
+    XMLTag: "ACTUALQTY"
+
+[Field: TSC I RATE]
+    Use: Name Field
+    Set As: $$String:$$Number:$Rate
+    XMLTag: "RATE"
+
+[Field: TSC I DISCOUNT]
+    Use: Name Field
+    Set As: $$String:$$Number:$Discount
+    XMLTag: "DISCOUNT"
+
+[Field: TSC I AMOUNT]
+    Use: Name Field
+    Set As: $$String:$$Number:$Amount
+    XMLTag: "AMOUNT"
+
+[Field: TSC I GSTRATE]
+    Use: Name Field
+    Set As: $$String:$GSTRate
+    XMLTag: "GSTRATE"
+
+[Field: TSC B GODOWN]
+    Use: Name Field
+    Set As: $GodownName
+    XMLTag: "GODOWN"
+
+[Field: TSC B BATCH]
+    Use: Name Field
+    Set As: $BatchName
+    XMLTag: "BATCH"
+
+[Field: TSC B ORDERNO]
+    Use: Name Field
+    Set As: $OrderNo
+    XMLTag: "ORDERNO"
+
+[Field: TSC B DUEDATE]
+    Use: Name Field
+    Set As: $$String:$OrderDueDate:UniversalDate
+    XMLTag: "DUEDATE"
+
+[Field: TSC B QTY]
+    Use: Name Field
+    Set As: $$String:$$Number:$BilledQty
+    XMLTag: "QTY"
+
+[Field: TSC B AMOUNT]
+    Use: Name Field
+    Set As: $$String:$$Number:$Amount
+    XMLTag: "AMOUNT"
+
+[Field: TSC A LEDGERNAME]
+    Use: Name Field
+    Set As: $LedgerName
+    XMLTag: "LEDGERNAME"
+
+[Field: TSC A AMOUNT]
+    Use: Name Field
+    Set As: $$String:$$Number:$Amount
+    XMLTag: "AMOUNT"
+
+[Field: TSC L LEDGERNAME]
+    Use: Name Field
+    Set As: $LedgerName
+    XMLTag: "LEDGERNAME"
+
+[Field: TSC L AMOUNT]
+    Use: Name Field
+    Set As: $$String:$$Number:$Amount
+    XMLTag: "AMOUNT"
+
+[Field: TSC L ISPARTY]
+    Use: Name Field
+    Set As: $$String:$IsPartyLedger
+    XMLTag: "ISPARTY"
+
