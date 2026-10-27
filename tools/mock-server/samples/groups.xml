@@ -1,0 +1,4 @@
+<ENVELOPE>
+ <GROUP><NAME>Mock Customers</NAME><PARENT>Sundry Debtors</PARENT></GROUP>
+ <GROUP><NAME>Mock Suppliers</NAME><PARENT>Sundry Creditors</PARENT></GROUP>
+</ENVELOPE>
