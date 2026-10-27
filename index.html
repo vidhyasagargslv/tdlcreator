@@ -1,7 +1,7 @@
 <!doctype html><html><head><meta charset="utf-8"><title>TDL Maker</title>
 <style>
 *{box-sizing:border-box}html,body{height:100%}
-body{font-family:system-ui,sans-serif;margin:0;display:grid;grid-template-columns:minmax(400px,440px) minmax(0,1fr);height:100vh;overflow:hidden}
+body{font-family:system-ui,sans-serif;margin:0;display:grid;grid-template-columns:var(--lw,420px) 6px minmax(300px,1fr);height:100vh;overflow:hidden}
 #f{padding:16px 20px;overflow:auto;background:#f6f7f9;border-right:1px solid #ddd;min-width:0}
 #p{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
 pre{flex:1;min-height:0;margin:0;padding:12px;overflow:auto;white-space:pre;background:#1e1e1e;color:#ddd;font-size:12px}
@@ -11,7 +11,8 @@ input[type=checkbox]{margin-right:6px}
 label:has(input[type=checkbox]){display:flex;align-items:center}
 fieldset{margin:10px 0;border:1px solid #ccc}
 #v{padding:6px 12px;font-size:13px;background:#eef}button{padding:8px 14px;margin-top:8px}
-@media (max-width:900px){body{display:block;height:auto;overflow:auto}#f{border-right:0}#p{height:80vh}}
+#sp{cursor:col-resize;background:#ccc;touch-action:none}#sp:hover,#sp.on{background:#4a90e2}
+@media (max-width:900px){#sp{display:none}body{display:block;height:auto;overflow:auto}#f{border-right:0}#p{height:80vh}}
 </style></head><body>
 <div id="f"><h2>TDL Maker</h2>
 <label>Menu name <input type=text id=menuName value="Sync"></label>
@@ -29,7 +30,7 @@ fieldset{margin:10px 0;border:1px solid #ccc}
 <label>File name <input type=text id=fname value="tallysync.tdl"></label>
 <button id=dl>Download .tdl</button>
 <h4>Load in Tally</h4><ol><li>Save the .tdl on the Tally PC.</li><li>F1 &gt; TDL &amp; Add-On &gt; Manage Local TDLs.</li><li>Load TDL on startup: Yes; add the full file path.</li><li>Check status says Loaded; open Gateway &gt; your menu.</li></ol></div>
-<div id="p"><div id=v></div><pre id=out></pre></div>
+<div id="sp" title="Drag to resize, double-click to reset"></div><div id="p"><div id=v></div><pre id=out></pre></div>
 <script>// TDL generator (shared by index.html and examples build)
 function genTDL(o){
  const E=o.entities||[], L=[], P=s=>L.push(s);
@@ -144,4 +145,15 @@ function opts(){const o={};['menuName','menuKey','fromDefault','format','url','a
 function upd(){const t=genTDL(opts());out.textContent=t;const e=validateTDL(t);v.textContent=e.length?'⚠ '+e.join('; '):'✓ Structure check passed (not a Tally compile check)';return t}
 document.addEventListener('input',upd);
 dl.onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([upd()],{type:'text/plain'}));a.download=g('fname').value||'tallysync.tdl';a.click()};
+
+(function(){const sp=g('sp'),r=document.body.style,K='tdlmaker.lw';
+const set=w=>{w=Math.max(300,Math.min(w,innerWidth-306));r.setProperty('--lw',w+'px');return w};
+const sv=localStorage.getItem(K);if(sv)set(+sv);
+let d=0;const mv=e=>{if(!d)return;const x=(e.touches?e.touches[0]:e).clientX;localStorage.setItem(K,set(x));e.preventDefault()};
+const up=()=>{d=0;sp.classList.remove('on');document.body.style.userSelect=''};
+const dn=e=>{d=1;sp.classList.add('on');document.body.style.userSelect='none';e.preventDefault()};
+sp.addEventListener('mousedown',dn);sp.addEventListener('touchstart',dn,{passive:false});
+addEventListener('mousemove',mv);addEventListener('touchmove',mv,{passive:false});
+addEventListener('mouseup',up);addEventListener('touchend',up);
+sp.addEventListener('dblclick',()=>{r.removeProperty('--lw');localStorage.removeItem(K)});})();
 upd();</script></body></html>
